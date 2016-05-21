@@ -45,7 +45,7 @@ def isGenreExists(genreId):
         return False
     return True
 
-def insertVideo(VideoDict):
+def insertVideo(VideoDict, SongDict):
     if isSongExists(VideoDict['song_id']) == False:
         cur.execute(
             """INSERT INTO video (youtube_id, title, description, song_id,
@@ -53,16 +53,48 @@ def insertVideo(VideoDict):
                 VALUES (%s, %s, %s, %s, %s, %s, %s);""",(VideoDict['youtube_id'], VideoDict['title'], VideoDict['description'],VideoDict['song_id'], VideoDict['length'], VideoDict['is_cover'], VideoDict['is_live'])
             )
         con.commit()
-
+        insertSong(SongDict)
         
 
-##def insertSong(SongDict,cursor):
-##
-##
-##def insertArtist(ArtistDict,cursor):
-##
-##
-##def insertGenre(GenreDict,cursor):
+def insertSong(SongDict, ArtistDict, GenreDict):
+    cur.execute(
+            """INSERT INTO song (song_id, song_name, artist_id, year,
+                                    genre_id)
+                VALUES (%s, %s, %s, %s, %s);""",(SongDict['song_id'],SongDict['song_name'], SongDict['artist_id'], SongDict['year'], SongDict['genre_id'])
+            )
+    con.commit()
+    if isArtistExists(SongDict['artist_id']) == False:
+        insertArtist(ArtistDict)
+    if isGenreExists(SongDict['genre_id']) == False:
+        insertGenre(GenreDict)
+        
+
+
+def insertArtist(ArtistDict):
+    cur.execute(
+            """INSERT INTO artist (artist_id, artist_name, country, gender)
+                VALUES (%s, %s, %s, %s);""",(ArtistDict['artist_id'], ArtistDict['artist_name'], ArtistDict['country'], ArtistDict['gender'])
+            )
+    con.commit()
+
+
+def insertGenre(GenreDict):
+    cur.execute(
+            """INSERT INTO genre (genre_id, parent_genre_id, genre_name)
+                VALUES (%s, %s, %s);""",(GenreDict['genre_id'], GenreDict['parent_genre_id'], GenreDict['genre_name'])
+            )
+    con.commit()
+
+def insertPlaylist(PlaylistDict):
+    cur.execute(
+            """INSERT INTO playlist (playlist_id, playlist_name, creation_date, description,
+                                    play_count)
+                VALUES (%s, %s, %s, %s, %s);""",(PlaylistDict['playlist_id'],PlaylistDict['playlist_name'], PlaylistDict['creation_date'], PlaylistDict['description'], PlaylistDict['play_count'])
+            )
+    con.commit()
+    
+    
+
 
     
 
