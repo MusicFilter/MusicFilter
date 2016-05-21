@@ -4,7 +4,7 @@
 #import warnings
 import MySQLdb as mdb
 
-con = mdb.connect('localhost', 'root', 'yaelushamitush2428', 'musicfilter')
+con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
