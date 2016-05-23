@@ -238,6 +238,8 @@
                 <div class="col-lg-12 text-center">
                     <h2>Create your own customized playlist</h2>
                     <p class="lead">Form</p>
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLu41Xe0rjqsCG0kKE3W4Wv5bhyUNCleBH" frameborder="0" allowfullscreen></iframe>
+                    <div id="player"></div>
                 </div>
             </div>
             <!-- /.row -->
@@ -303,6 +305,23 @@
                 }
             }
         });
+        
+        
+        
+        var player;
+        var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
+
+
+        player = new YT.Player('player', {
+            height: '315',
+            width: '560',
+            playerVars : {
+                playlist: playlist.join(','),
+            }
+        });
+        
+        
+        
     });
     </script>
 
