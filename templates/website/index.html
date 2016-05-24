@@ -88,7 +88,8 @@
             <!-- Trending data -->
             <div class="row">
 
-                <!-- Item #1 -->
+                {% for item in trending %}
+                <!-- Item -->
                 <div class="col-md-3">
                     <div class="service-item">
                         <span class="fa-stack fa-4x">
@@ -96,57 +97,13 @@
                             <i class="fa fa-line-chart fa-stack-1x text-primary"></i>
                         </span>
                         <h4>
-                            <strong>Playlist #1</strong>
+                            <strong>{{ item.name }}</strong>
                         </h4>
-                        <p>12,345 Views</p>
-                        <a href="" class="btn btn-light">Listen</a>
+                        <p>{{ item.hits }} Views</p>
+                        <a href="player/{{ item.id }}" class="btn btn-light">Listen</a>
                     </div>
                 </div>
-
-                <!-- Item #2 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-line-chart fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #2</strong>
-                        </h4>
-                        <p>1,234 Views</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
-
-                <!-- Item #3 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-line-chart fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #3</strong>
-                        </h4>
-                        <p>123 Views</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
-
-                <!-- Item #4 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-line-chart fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #4</strong>
-                        </h4>
-                        <p>12 Views</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
+                {% endfor %}
 
             </div>
             <!-- /.row -->
@@ -163,7 +120,7 @@
 
             <!-- Newest data -->
             <div class="row">
-
+                {% for item in newest %}
                 <!-- Item #1 -->
                 <div class="col-md-3">
                     <div class="service-item">
@@ -172,58 +129,13 @@
                             <i class="fa fa-clock-o fa-stack-1x text-primary"></i>
                         </span>
                         <h4>
-                            <strong>Playlist #1</strong>
+                            <strong>{{ item.name }}</strong>
                         </h4>
-                        <p>Added 2m ago</p>
-                        <a href="" class="btn btn-light">Listen</a>
+                        <p>Added {{ item.elapsed }}</p>
+                        <a href="player/{{ item.id }}" class="btn btn-light">Listen</a>
                     </div>
                 </div>
-
-                <!-- Item #2 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-clock-o fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #2</strong>
-                        </h4>
-                        <p>Added 57m ago</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
-
-                <!-- Item #3 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-clock-o fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #3</strong>
-                        </h4>
-                        <p>Added 13h ago</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
-
-                <!-- Item #4 -->
-                <div class="col-md-3">
-                    <div class="service-item">
-                        <span class="fa-stack fa-4x">
-                            <i class="fa fa-circle fa-stack-2x"></i>
-                            <i class="fa fa-clock-o fa-stack-1x text-primary"></i>
-                        </span>
-                        <h4>
-                            <strong>Playlist #4</strong>
-                        </h4>
-                        <p>Added 12d ago</p>
-                        <a href="" class="btn btn-light">Listen</a>
-                    </div>
-                </div>
-
+                {% endfor %}
             </div>
             <!-- /.row -->
 
