@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {% load staticfiles %}
+    <title>Music Filter</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static "css/stylish-portfolio.css" %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static "font-awesome/css/font-awesome.min.css" %}" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>    
+
+    <!-- Header -->
+    <header id="top" class="player">
+        <div class="text-vertical-center">
+            <h1 style="color: white;">Music Filter</h1>
+            <h3 style="color: crimson;">{{ playlist.name }}</h3>
+            <div id="player"></div>
+        </div>
+    </header>    
+
+    <!-- Footer -->
+    <footer id="about">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1 text-center">
+                    <h2><strong>Music Filter</strong></h2>
+                    <h4>Final project in Database Systems</h4>
+                    <br>
+                    <h4><strong>Created By</strong></h4>
+                    <p>Ilia Shevrin</p>
+                    <p>Guy Biron</p>
+                    <p>Ron Altboum</p>
+                    <p>Yoav Porat</p>
+                    <p>Amit Yaakobovich</p>
+                    <br>
+                    <h4><strong>Tel Aviv University</strong></h4>
+                    <br>
+                    <a target="_blank" href="http://www.tau.ac.il"><img width="60" height="80" src="{% static "img/tau_logo.png" %}" /></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="{% static "js/jquery.js" %}"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{% static "js/bootstrap.min.js" %}"></script>
+
+    <script>
+
+        $(function() {
+            // YouTube initialization code
+            var tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            var firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        });
+
+        // YouTube playlist videos. Will be loaded from DB
+        var player;
+        //var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
+        var playlist = [
+            {% for video in playlist.video_list %}
+            '{{ video }}',
+            {% endfor %}
+        ];
+
+        // YouTube functions
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '315',
+                width: '560',
+                playerVars : {
+                    playlist: playlist.join(','),
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        var done = false;
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING && !done) {
+                setTimeout(stopVideo, 6000);
+                done = true;
+            }
+        }
+
+        function stopVideo() {
+            player.stopVideo();
+        }
+
+    </script>
+
+</body>
+
+</html>
