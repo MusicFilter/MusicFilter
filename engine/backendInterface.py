@@ -1,4 +1,31 @@
 from dummyDB import dummy_db
+from engine.dummyDB import artist_db
+
+"""
+Get all countries from DB
+"""
+def getArtists():
+    
+    # Return all artists from the DB to populate the list
+    return sorted(artist_db, key=lambda x: x.name, reverse=False)
+
+
+"""
+Get all distinct countries from DB
+"""
+def getCountries():
+    
+    # select alphabetically sorted distinct countries from DB...
+    return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
+
+
+"""
+Get all distinct genres from DB
+"""
+def getGenres():
+    
+    # select alphabetically sorted distinct countries from DB...
+    return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
 
 """
 Get top trending playlists

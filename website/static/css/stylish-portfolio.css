@@ -212,6 +212,39 @@ hr.small {
     -o-background-size: cover;
 }
 
+/* Form CSS */
+
+.filter {
+	
+	display: inline-block;
+	padding: 10px;
+}
+
+.filter-label {
+	padding: 0 10px;
+}
+
+.vertical {
+	width: 100%;
+	padding: 5px 0;
+}
+
+.create-icon {
+	color: crimson;
+	padding-left: 15px;
+	vertical-align: sub;
+}
+
+#submit-btn {
+	margin-top: 15px;
+	font-size: 24px;
+	color: crimson;
+}
+
+#freetext {
+	text-align: center;
+}
+
 /* Services */
 
 .services {
