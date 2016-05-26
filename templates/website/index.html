@@ -57,10 +57,12 @@
     <!-- Header -->
     <header id="top" class="header">
         <div class="text-vertical-center">
-            <h1 style="color: white;">Music Filter</h1>
+            <h1>
+                <span style="font-weight: 400; color: white;">MUSIC</span><span style="font-weight: 700; color: #337ab7;">FILTER</span>
+            </h1>
             <h3 style="color: crimson;">Personalized YouTube Experience</h3>
-            <a href="#listen" class="btn btn-lg"><i class="fa fa-headphones fa-4x"></i></a>
-            <a href="#create" class="btn btn-lg"><i class="fa fa-plus fa-4x"></i></a>
+            <a href="#listen" data-toggle="tooltip" title="Choose Playlist" class="btn btn-lg"><i class="fa fa-headphones fa-4x"></i></a>
+            <a href="#create" data-toggle="tooltip" title="Create Playlist" class="btn btn-lg"><i class="fa fa-plus fa-4x"></i></a>
         </div>
     </header>
 
@@ -80,7 +82,7 @@
             <!-- Trending header -->
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h3>Now Trending</h3>
+                    <h3>Trending</h3>
                     <hr class="small">
                     <br>
                 </div>
@@ -150,31 +152,33 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2>Create your own customized playlist</h2>
+                    <h1>Create your own customized playlist</h1>
+                    <hr class="large">
                     <br>
- 
-                    <form role="createPlaylist">
+
+                    <form role="createPlaylist" action="/generator/" method="post">
+                        {% csrf_token %}
                     	<fieldset class="form-group col-md-3">
                     		<label for="genre">Choose your genres...</label>
-						    <select id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							{% for item in genres %}
-							  	<option value="">{{ item }}</option>
-							  {% endfor %}
+							  	<option value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
 							</select>
 						</fieldset>
 						
 						<fieldset class="form-group col-md-3">
 							<label for="artist">Choose your artists...</label>
-							<select id="artist" title="We got 'em all" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							<select name="artist" id="artist" title="We got 'em all" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							{% for item in artists %}
 							  	<option value="{{ item.id }}">{{ item.name }}</option>
-							  {% endfor %}
+                            {% endfor %}
 							</select>
 						</fieldset>
 						
 						<fieldset class="form-group col-md-3">
 							<label for="decade">Choose your decades...</label>
-							<select id="decade" title="From the 60s to our days" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							<select id="decade" name="decade" title="From the 60s to our days" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							  <option>1960s</option>
 							  <option>1970s</option>
 							  <option>1980s</option>
@@ -186,26 +190,26 @@
 						
 						<fieldset class="form-group col-md-3">
 							<label for="country">Choose your countries...</label>
-							<select id="country" title="It doesn't stop in the US" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							<select name="country" id="country" title="It doesn't stop in the US" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							{% for item in countries %}
-							  	<option value="">{{ item }}</option>
-							  {% endfor %}
+							  	<option value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
 							</select>
 						</fieldset>
 					   
 					   <fieldset class="vertical form-group">
 					   	   <label class="filter-label">
-						      <input id="live" type="checkbox"> Give me live versions!
-						    </label>
+						      <input name="live" id="live" type="checkbox"> Give me live versions!
+                           </label>
 						    
 						     
 					   	   <label class="filter-label">
-						      <input id="cover" type="checkbox"> Give me cover versions!
+						      <input name="cover" id="cover" type="checkbox"> Give me cover versions!
 						    </label>
 						</fieldset>
 						
 						<fieldset class="vertical form-group col-md-12">
-							<input class="form-control" id="freetext" type="text" placeholder="...and anything that comes to your mind">
+							<input name="text" class="form-control" id="freetext" type="text" placeholder="...and anything that comes to your mind">
 						</fieldset>
 						
 						<br>

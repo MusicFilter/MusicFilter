@@ -1,4 +1,4 @@
-from dummyDB import dummy_db
+from dummyDB import dummy_db, getRandomPlaylist
 from engine.dummyDB import artist_db
 
 """
@@ -61,7 +61,7 @@ def getNewest(count=4):
 """
 Get playlist object by its playlist_id filed
 :returns: [playlist] object or -1 if nothing was found
-:param: [int] playlist id
+:param: playlist_id [int] playlist ID
 """
 def getPlaylistById(playlist_id):
 
@@ -79,6 +79,7 @@ def getPlaylistById(playlist_id):
 
 """
 Update hit count to DB after watching the playlist
+:param: playlist_id [int] playlist ID
 """
 def incrementHitCount(playlist_id):
 
@@ -88,3 +89,39 @@ def incrementHitCount(playlist_id):
     p = getPlaylistById(playlist_id)
     p.hits += 1
 
+
+"""
+Create a playlist using the given filter parameters
+:returns: [playlist]
+:param: genres [list] of [int] genres ID
+:param: countries [list] of [int] country ID
+:param: artists [list] of [int] artists ID
+:param: decades [list] of [int] decades ID
+:param: freetext [string] free text
+"""
+def genratePlaylist(genres, countries, artists, decades, freetext):
+
+    # implement logic to create customized playlist by the given parameters
+    # run as a seperate process to allow preloader
+
+    # dummyDB
+    print 'generating a playlist from the following parameters:\n' \
+          'Genres: {0}\n' \
+          'Countries: {1}\n' \
+          'Artists: {2}\n' \
+          'Decades: {3}\n' \
+          'Freetext: {4}'.format(genres, countries, artists, decades, freetext)
+    return getRandomPlaylist().id
+
+
+"""
+Query DB if the requested playlist exists
+:returns: [boolean]
+:param: [int] playlist ID
+"""
+def isPlaylistExists(playlist_id):
+
+    # query the DB if the playlist exists
+
+    # dummyDB
+    return True

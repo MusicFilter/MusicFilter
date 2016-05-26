@@ -10,5 +10,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', views.home, name='home'),
-    url(r'^player/(?P<playlist_id>\d{0,10})/$', views.player, name='player')
+    url(r'^player/(?P<playlist_id>\d{0,10})/(?P<action>\w{0,10})$', views.player, name='player'),
+    url(r'^generator/$', views.generator, name='generator'),
+
 )

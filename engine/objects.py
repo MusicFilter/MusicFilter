@@ -1,4 +1,5 @@
 from datetime import datetime
+from random import shuffle
 
 class Artist:
     
@@ -100,3 +101,6 @@ class Playlist:
 
         elif e.seconds > 0:
             self.elapsed = '{0}s ago'.format(e.seconds)
+
+    def reshuffle(self):
+        shuffle(self.video_list)
