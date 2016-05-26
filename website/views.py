@@ -7,12 +7,15 @@ Homepage
 """
 def home(request):
 
+    if request.method == 'POST':
+        print 'POST!'
+
     context = {
-        'trending': backendInterface.getTrending(),
-        'newest':   backendInterface.getNewest(),
-        'countries': backendInterface.getCountries(),
-        'artists':  backendInterface.getArtists(),
-        'genres':   backendInterface.getGenres()
+        'trending':     backendInterface.getTrending(),
+        'newest':       backendInterface.getNewest(),
+        'countries':    backendInterface.getCountries(),
+        'artists':      backendInterface.getArtists(),
+        'genres':       backendInterface.getGenres()
     }
     return render(request, 'index.html', context)
 
@@ -22,6 +25,7 @@ Player
 """
 def player(request, playlist_id):
 
+    # 'playlist not found'
     playlist404 = Playlist(-1)
     playlist404.name = 'Playlist Not Found'
     playlist404.video_list = []

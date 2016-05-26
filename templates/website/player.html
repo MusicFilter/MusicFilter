@@ -35,8 +35,13 @@
     <!-- Header -->
     <header id="top" class="player">
         <div class="text-vertical-center">
-            <a href="/"><h1 style="color: white;">Music Filter</h1></a>
+            <a href="/" data-toggle="tooltip" title="Back Home" class="btn btn-lg"><i class="fa fa-home fa-4x"></i></a>
+            <a href="" data-toggle="tooltip" title="Reshuffle" class="btn btn-lg"><i class="fa fa-random fa-4x"></i></a>
+            <h1>
+                <span style="font-weight: 400; color: white;">MUSIC</span><span style="font-weight: 700; color: #337ab7;">FILTER</span>
+            </h1>
             <h3 style="color: crimson;">{{ playlist.name }}</h3>
+            <br><br>
             <div id="player"></div>
         </div>
     </header>    
