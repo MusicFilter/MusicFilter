@@ -31,7 +31,6 @@ def player(request, playlist_id, action=None):
     p = backendInterface.getPlaylistById(playlist_id)
 
     if action == 'reshuffle':
-        return
         p.reshuffle()
 
     # update hit count
