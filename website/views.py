@@ -7,9 +7,6 @@ Homepage
 """
 def home(request):
 
-    if request.method == 'POST':
-        print 'POST!'
-
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
@@ -17,6 +14,7 @@ def home(request):
         'artists':      backendInterface.getArtists(),
         'genres':       backendInterface.getGenres()
     }
+
     return render(request, 'index.html', context)
 
 
@@ -33,22 +31,45 @@ def player(request, playlist_id, action=None):
     p = backendInterface.getPlaylistById(playlist_id)
 
     if action == 'reshuffle':
+        return
         p.reshuffle()
 
     # update hit count
-    backendInterface.incrementHitCount(playlist_id)
+    else:
+        backendInterface.incrementHitCount(playlist_id)
 
+    # playlist not found
     if p == -1:
-        # playlist not found
         context = {
             'playlist': playlist404
         }
 
+    # valid playlist
     else:
-
         context = {
             'playlist': p,
             'action': action
         }
 
     return render(request, 'player.html', context)
+
+
+"""
+Generator
+"""
+def generator(request):
+    if request.method == 'POST':
+        generatedPlaylistID = backendInterface.genratePlaylist(
+            genres=request.POST.get('genre'),
+            countries=request.POST.get('country'),
+            decades=request.POST.get('decade'),
+            artists=request.POST.get('artist'),
+            freetext=request.POST.get('text')
+        )
+        print request.POST
+
+    context = {
+        'playlist_id': generatedPlaylistID
+    }
+
+    return render(request, 'loader.html', context)
