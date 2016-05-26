@@ -23,7 +23,7 @@ def home(request):
 """
 Player
 """
-def player(request, playlist_id):
+def player(request, playlist_id, action=None):
 
     # 'playlist not found'
     playlist404 = Playlist(-1)
@@ -31,6 +31,9 @@ def player(request, playlist_id):
     playlist404.video_list = []
 
     p = backendInterface.getPlaylistById(playlist_id)
+
+    if action == 'reshuffle':
+        p.reshuffle()
 
     # update hit count
     backendInterface.incrementHitCount(playlist_id)
@@ -44,7 +47,8 @@ def player(request, playlist_id):
     else:
 
         context = {
-            'playlist': p
+            'playlist': p,
+            'action': action
         }
 
     return render(request, 'player.html', context)
