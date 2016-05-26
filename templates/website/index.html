@@ -13,6 +13,8 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+    
+    <link href="{% static "css/bootstrap-select.min.css" %}" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link href="{% static "css/stylish-portfolio.css" %}" rel="stylesheet">
@@ -149,7 +151,66 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2>Create your own customized playlist</h2>
-                    <p class="lead">Form</p>
+                    <br>
+ 
+                    <form role="createPlaylist">
+                    	<fieldset class="form-group col-md-3">
+                    		<label for="genre">Choose your genres...</label>
+						    <select id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in genres %}
+							  	<option value="">{{ item }}</option>
+							  {% endfor %}
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="artist">Choose your artists...</label>
+							<select id="artist" title="We got 'em all" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in artists %}
+							  	<option value="{{ item.id }}">{{ item.name }}</option>
+							  {% endfor %}
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="decade">Choose your decades...</label>
+							<select id="decade" title="From the 60s to our days" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							  <option>1960s</option>
+							  <option>1970s</option>
+							  <option>1980s</option>
+							  <option>1990s</option>
+							  <option>2000s</option>
+							  <option>2010s</option>
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="country">Choose your countries...</label>
+							<select id="country" title="It doesn't stop in the US" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in countries %}
+							  	<option value="">{{ item }}</option>
+							  {% endfor %}
+							</select>
+						</fieldset>
+					   
+					   <fieldset class="vertical form-group">
+					   	   <label class="filter-label">
+						      <input id="live" type="checkbox"> Give me live versions!
+						    </label>
+						    
+						     
+					   	   <label class="filter-label">
+						      <input id="cover" type="checkbox"> Give me cover versions!
+						    </label>
+						</fieldset>
+						
+						<fieldset class="vertical form-group col-md-12">
+							<input class="form-control" id="freetext" type="text" placeholder="...and anything that comes to your mind">
+						</fieldset>
+						
+						<br>
+						<button id="submit-btn" type="submit" class="btn btn-lg btn-light">Create!<i class="create-icon fa fa-arrow-circle-right fa-2x"></i></button>
+					</form>
                 </div>
             </div>
             <!-- /.row -->
@@ -185,6 +246,8 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static "js/bootstrap.min.js" %}"></script>
+    
+    <script src="{% static "js/bootstrap-select.min.js" %}"></script>
 
     <!-- Custom Theme JavaScript -->
     <script>
@@ -215,7 +278,9 @@
                 }
             }
         });
+       
     });
+
     </script>
 
 </body>

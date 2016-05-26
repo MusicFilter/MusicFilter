@@ -9,7 +9,10 @@ def home(request):
 
     context = {
         'trending': backendInterface.getTrending(),
-        'newest':   backendInterface.getNewest()
+        'newest':   backendInterface.getNewest(),
+        'countries': backendInterface.getCountries(),
+        'artists':  backendInterface.getArtists(),
+        'genres':   backendInterface.getGenres()
     }
     return render(request, 'index.html', context)
 
