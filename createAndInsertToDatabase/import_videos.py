@@ -1,5 +1,4 @@
 import json
-import pprint
 import requests
 from collections import Counter
 
@@ -56,13 +55,13 @@ SELECT_ALBUMS_BY_PERFORMER = WDQS_PREFIXES + """
 """
 
 ID_HUMAN = 5
+ID_MUSIC = 638
 ID_SONG = 7366
-ID_FEMALE = 6581072
-ID_MALE = 6581097
+ID_POPULAR_MUSIC = 373342
+ID_MUSICAL_WORK = 2188189
 
 PROP_COUNTRY = 'P17'
 PROP_PLACE_OF_BIRTH = 'P19'
-PROP_GENDER = 'P21'
 PROP_INSTANCE_OF = 'P31'
 PROP_GENRE = 'P136'
 PROP_SUBCLASS_OF = 'P279'
@@ -72,9 +71,6 @@ PROP_LOCATION_OF_FORMATION = 'P740'
 
 ARTIST_TYPE_BAND = 'B'
 ARTIST_TYPE_SOLO = 'S'
-
-ARTIST_GENDER_FEMALE = 'F'
-ARTIST_GENDER_MALE = 'M'
 
 VIDEOS_PER_ARTIST = 2
 
@@ -128,10 +124,7 @@ def youtube_search_by_topic(topic_id):
                                                  topicId=topic_id,
                                                  type="video",
                                                  videoCategoryId=10,
-                                                 # XXX Do we need this? see:
-                                                 # http://stackoverflow.com/questions/21507504/youtube-api-playing-videosyndicated-vs-videoembeddable
-                                                 # http://stackoverflow.com/questions/31325780/videoembeddable-flag-is-not-working
-                                                 # videoEmbeddable="true"
+                                                 videoEmbeddable="true"
                                                  ).execute()
 
     return search_list_response.get("items", [])
@@ -152,7 +145,7 @@ def artist_videos(artist):
         video_details['youtube_id'] = video_id
         video_details['title'] = search_result["snippet"]["title"]
         video_details['description'] = search_result["snippet"]["description"]
-        video_details['length'] = video["contentDetails"]["duration"]
+        video_details['duration'] = video["contentDetails"]["duration"]
         video_details['is_cover'] = "Y" if ("cover" in search_result["snippet"]["title"].lower() or "cover" in search_result["snippet"]["description"].lower()) else "N"
         video_details['is_live'] = "Y" if ("live" in search_result["snippet"]["title"].lower() or "cover" in search_result["snippet"]["description"].lower()) else "N"
         video_details['artist_id'] = artist_wikidata_id
@@ -164,9 +157,8 @@ def artist_videos(artist):
 def genre_id_to_top_genre_id(genre_id):
     genre = wikidata_entity(genre_id)
     parent_genre_ids = wikidata_item_values(genre, PROP_SUBCLASS_OF)
-    # music, musical work, popular music
-    if ((not parent_genre_ids) or (638 in parent_genre_ids)
-        or (2188189 in parent_genre_ids) or (373342 in parent_genre_ids)):
+    if ((not parent_genre_ids) or (ID_MUSIC in parent_genre_ids)
+        or (ID_MUSICAL_WORK in parent_genre_ids) or (ID_POPULAR_MUSIC in parent_genre_ids)):
         return genre_id
     else:
         # Music genres have at most a single parent, so we simply use parent_genre_ids[0].
@@ -186,36 +178,31 @@ def artist_genres(artist):
 
     return genres
 
-def artist_country(artist):
-    if ID_HUMAN in wikidata_item_values(artist, PROP_INSTANCE_OF):
-        # Solo artist.
-        place_of_birth_id = wikidata_item_values(artist, PROP_PLACE_OF_BIRTH)[0]
-        place_of_birth = wikidata_entity(place_of_birth_id)
-        country_id = wikidata_item_values(place_of_birth, PROP_COUNTRY)[0]
-    else:
-        # Band.
-        location_of_formation_id = wikidata_item_values(artist, PROP_LOCATION_OF_FORMATION)[0]
-        location_of_formation = wikidata_entity(location_of_formation_id)
-        country_id = wikidata_item_values(location_of_formation, PROP_COUNTRY)[0]
-
-    country = wikidata_entity(country_id)
-    return wikidata_label(country)
-
 def artist_type(artist):
     if ID_HUMAN in wikidata_item_values(artist, PROP_INSTANCE_OF):
         return ARTIST_TYPE_SOLO
     else:
         return ARTIST_TYPE_BAND
 
-def artist_gender(artist):
+def artist_country(artist):
     if artist_type(artist) == ARTIST_TYPE_SOLO:
-        gender_ids = wikidata_item_values(artist, PROP_GENDER)
-        if ID_FEMALE in gender_ids:
-            return ARTIST_GENDER_FEMALE
-        else:
-            return ARTIST_GENDER_MALE
+        location_property = PROP_PLACE_OF_BIRTH
     else:
+        location_property = PROP_LOCATION_OF_FORMATION
+
+    location_list = wikidata_item_values(artist, location_property)
+    if not location_list:
         return None
+
+    location = wikidata_entity(location_list[0])
+
+    country_list = wikidata_item_values(location, PROP_COUNTRY)
+    if not country_list:
+        return None
+
+    country = wikidata_entity(country_list[0])
+
+    return wikidata_label(country)
 
 def artist_decade(artist):
     artist_id = wikidata_entity_string_to_id(artist['id'])
@@ -229,6 +216,9 @@ def artist_decade(artist):
         publication_dates = wikidata_time_values(entity, PROP_PUBLICATION_DATE)
         years.extend([int(publication_date[1:5]) for publication_date in publication_dates])
 
+    if not years:
+        return None
+
     decades = [year / 10 * 10 for year in years]
     return Counter(decades).most_common(1)[0][0]
 
@@ -241,13 +231,9 @@ def get_artist_details(artist_id):
     artist_details['name'] = wikidata_label(artist)
     artist_details['country'] = artist_country(artist)
     artist_details['type'] = artist_type(artist)
-    artist_details['gender'] = artist_gender(artist)
     artist_details['decade'] = artist_decade(artist)
     artist_details['genres'] = artist_genres(artist)
-
     artist_details['videos'] = artist_videos(artist)
-
-    pprint.pprint(artist_details)
 
     return artist_details
 
@@ -265,5 +251,3 @@ def build_database():
 
     for artist_id in artist_ids:
         artist_details = get_artist_details(artist_id)
-        # genre_details = get_genre_details(artist_details['genre_id'])
-        # artist_videos(artist_details, genre_details)
