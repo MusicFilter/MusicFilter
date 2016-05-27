@@ -67,31 +67,24 @@ dummy_db = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10]
 
 a1 = Artist(1)
 a1.name = 'The Beatles'
-a1.country = 'United Kingdom'
 
 a2 = Artist(2)
 a2.name = 'Nick Cave'
-a2.country = 'Australia'
 
 a3 = Artist(3)
 a3.name = 'Nirvana'
-a3.country = 'United States'
 
 a4 = Artist(4)
 a4.name = 'U2'
-a4.country = 'Ireland'
 
 a5 = Artist(5)
 a5.name = 'Metallica'
-a5.country = 'United States'
 
 a6 = Artist(6)
 a6.name = 'R.E.M'
-a6.country = 'United States'
 
 a7 = Artist(7)
 a7.name = 'The Who'
-a7.country = 'United Kingdom'
 
 artist_db = [a1, a2, a3, a4, a5, a6, a7]
 

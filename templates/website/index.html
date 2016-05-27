@@ -155,9 +155,15 @@
                     <h1>Create your own customized playlist</h1>
                     <hr class="large">
                     <br>
+                    
 
                     <form role="createPlaylist" action="/generator/" method="post">
                         {% csrf_token %}
+                        
+                        <fieldset class="form-group col-md-12">
+                        	<input id="name" class="form-control input-lg text-input" placeholder="Name your playlist..." name="name" type="text">
+                        </fieldset>
+                        
                     	<fieldset class="form-group col-md-3">
                     		<label for="genre">Choose your genres...</label>
 						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
@@ -209,11 +215,11 @@
 						</fieldset>
 						
 						<fieldset class="vertical form-group col-md-12">
-							<input name="text" class="form-control" id="freetext" type="text" placeholder="...and anything that comes to your mind">
+							<input name="text" class="form-control text-input" type="text" placeholder="...and anything that comes to your mind">
 						</fieldset>
 						
 						<br>
-						<button id="submit-btn" type="submit" class="btn btn-lg btn-light">Create!<i class="create-icon fa fa-arrow-circle-right fa-2x"></i></button>
+						<button id="submit-btn" type="submit" class="disabled btn btn-lg btn-light">Create!<i class="create-icon fa fa-arrow-circle-right fa-2x"></i></button>
 					</form>
                 </div>
             </div>
@@ -266,9 +272,26 @@
         e.preventDefault();
         $("#sidebar-wrapper").toggleClass("active");
     });
+    
+    $("#name").keyup(fixSubmit);
+    $("#name").change(fixSubmit);
+    
+    function fixSubmit() {
+		
+    	if ($("#name").val() != "") {
+    		$("#submit-btn").removeClass("disabled");
+    	} else {
+    		$("#submit-btn").addClass("disabled");
+    	}
+    	
+    }
 
     // Scrolls to the selected menu item on the page
     $(function() {
+    	
+    	// Fix submit button on startup
+    	fixSubmit();
+    	
         $('a[href*=#]:not([href=#])').click(function() {
             if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') || location.hostname == this.hostname) {
 
