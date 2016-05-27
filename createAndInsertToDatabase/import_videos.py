@@ -57,6 +57,7 @@ SELECT_ALBUMS_BY_PERFORMER = WDQS_PREFIXES + """
 ID_HUMAN = 5
 ID_MUSIC = 638
 ID_SONG = 7366
+ID_MUSIC_GENRE = 188451
 ID_POPULAR_MUSIC = 373342
 ID_MUSICAL_WORK = 2188189
 
@@ -142,35 +143,41 @@ def artist_videos(artist):
         video = youtube_video(video_id)
 
         video_details = {}
-        video_details['youtube_id'] = video_id
+        video_details['video_id'] = video_id
         video_details['title'] = search_result["snippet"]["title"]
         video_details['description'] = search_result["snippet"]["description"]
         video_details['duration'] = video["contentDetails"]["duration"]
-        video_details['is_cover'] = "Y" if ("cover" in search_result["snippet"]["title"].lower() or "cover" in search_result["snippet"]["description"].lower()) else "N"
-        video_details['is_live'] = "Y" if ("live" in search_result["snippet"]["title"].lower() or "cover" in search_result["snippet"]["description"].lower()) else "N"
+        video_details['is_cover'] = int("cover" in search_result["snippet"]["title"].lower())
+        video_details['is_live'] = int("live" in search_result["snippet"]["title"].lower())
+        video_details['with_lyrics'] = int("lyrics" in search_result["snippet"]["title"].lower())
         video_details['artist_id'] = artist_wikidata_id
 
         videos.append(video_details)
 
     return videos
 
-def genre_id_to_top_genre_id(genre_id):
-    genre = wikidata_entity(genre_id)
-    parent_genre_ids = wikidata_item_values(genre, PROP_SUBCLASS_OF)
-    if ((not parent_genre_ids) or (ID_MUSIC in parent_genre_ids)
-        or (ID_MUSICAL_WORK in parent_genre_ids) or (ID_POPULAR_MUSIC in parent_genre_ids)):
-        return genre_id
-    else:
-        # Music genres have at most a single parent, so we simply use parent_genre_ids[0].
-        return genre_id_to_top_genre_id(parent_genre_ids[0])
+def genre_ids_to_top_genre_ids(genre_ids):
+    top_genre_ids = []
+
+    for genre_id in genre_ids:
+        genre = wikidata_entity(genre_id)
+
+        if ID_MUSIC_GENRE in wikidata_item_values(genre, PROP_INSTANCE_OF):
+            parent_genre_ids = wikidata_item_values(genre, PROP_SUBCLASS_OF)
+            if ((not parent_genre_ids) or (ID_MUSIC in parent_genre_ids)
+                or (ID_MUSICAL_WORK in parent_genre_ids) or (ID_POPULAR_MUSIC in parent_genre_ids)):
+                top_genre_ids.append(genre_id)
+            else:
+                top_genre_ids.extend(genre_ids_to_top_genre_ids(parent_genre_ids))
+
+    return list(set(top_genre_ids))
 
 def artist_genres(artist):
     genres = []
 
     genre_ids = wikidata_item_values(artist, PROP_GENRE)
 
-    top_genre_ids = [genre_id_to_top_genre_id(genre_id) for genre_id in genre_ids]
-    top_genre_ids = list(set(top_genre_ids))
+    top_genre_ids = genre_ids_to_top_genre_ids(genre_ids)
 
     for top_genre_id in top_genre_ids:
         genres.append({'genre_id': top_genre_id,
@@ -178,31 +185,29 @@ def artist_genres(artist):
 
     return genres
 
-def artist_type(artist):
-    if ID_HUMAN in wikidata_item_values(artist, PROP_INSTANCE_OF):
-        return ARTIST_TYPE_SOLO
-    else:
-        return ARTIST_TYPE_BAND
+def artist_is_band(artist):
+    return int(ID_HUMAN not in wikidata_item_values(artist, PROP_INSTANCE_OF))
 
 def artist_country(artist):
-    if artist_type(artist) == ARTIST_TYPE_SOLO:
-        location_property = PROP_PLACE_OF_BIRTH
-    else:
+    if artist_is_band(artist):
         location_property = PROP_LOCATION_OF_FORMATION
+    else:
+        location_property = PROP_PLACE_OF_BIRTH
 
-    location_list = wikidata_item_values(artist, location_property)
-    if not location_list:
+    locations = wikidata_item_values(artist, location_property)
+    if not locations:
         return None
 
-    location = wikidata_entity(location_list[0])
+    location = wikidata_entity(locations[0])
 
-    country_list = wikidata_item_values(location, PROP_COUNTRY)
-    if not country_list:
+    countries = wikidata_item_values(location, PROP_COUNTRY)
+    if not countries:
         return None
 
-    country = wikidata_entity(country_list[0])
+    country_id = countries[0]
+    country = wikidata_entity(country_id)
 
-    return wikidata_label(country)
+    return {'country_id': country_id, 'name': wikidata_label(country)}
 
 def artist_decade(artist):
     artist_id = wikidata_entity_string_to_id(artist['id'])
@@ -229,9 +234,10 @@ def get_artist_details(artist_id):
 
     artist_details['artist_id'] = artist_id
     artist_details['name'] = wikidata_label(artist)
-    artist_details['country'] = artist_country(artist)
-    artist_details['type'] = artist_type(artist)
+    artist_details['is_band'] = artist_is_band(artist)
     artist_details['decade'] = artist_decade(artist)
+
+    artist_details['country'] = artist_country(artist)
     artist_details['genres'] = artist_genres(artist)
     artist_details['videos'] = artist_videos(artist)
 
@@ -244,6 +250,7 @@ def select_artists():
     artists = []
     for artist in response['results']['bindings']:
         artists.append(wikidata_entity_url_to_id(artist['item']['value']))
+
     return artists
 
 def build_database():
@@ -251,3 +258,9 @@ def build_database():
 
     for artist_id in artist_ids:
         artist_details = get_artist_details(artist_id)
+        insertArtist(artist_details)
+        insertCountry(artist_details['country'])
+        for genre in artist_details['genres']:
+            insertGenre(genre)
+        for video in artist_details['videos']:
+            insertVideo(video)
