@@ -38,6 +38,9 @@ def player(request, playlist_id, action=None):
 
     if action == 'reshuffle':
         p.reshuffle()
+        
+    elif action == 'refresh':
+        backendInterface.reloadVideos(p)
 
     # update hit count
     else:
@@ -53,6 +56,7 @@ def player(request, playlist_id, action=None):
     else:
         context = {
             'playlist': p,
+            'description' : p.getDescription(),
             'action': action
         }
 
@@ -64,12 +68,17 @@ Generator
 """
 def generator(request):
     if request.method == 'POST':
+        
         generatedPlaylistID = backendInterface.genratePlaylist(
-            genres=request.POST.get('genre'),
-            countries=request.POST.get('country'),
-            decades=request.POST.get('decade'),
-            artists=request.POST.get('artist'),
-            freetext=request.POST.get('text')
+            name=request.POST.get('name'),
+            genres=request.POST.getlist('genre'),
+            countries=request.POST.getlist('country'),
+            decades=request.POST.getlist('decade'),
+            artists=request.POST.getlist('artist'),
+            freetext=request.POST.get('text'),
+            live=request.POST.get('live'),
+            cover=request.POST.get('cover'),
+            withlyrics=request.POST.get('withlyrics')
         )
         print request.POST
 

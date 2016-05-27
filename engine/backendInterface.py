@@ -93,26 +93,84 @@ def incrementHitCount(playlist_id):
 """
 Create a playlist using the given filter parameters
 :returns: [playlist]
+:param] name [string] of the playlist
 :param: genres [list] of [int] genres ID
 :param: countries [list] of [int] country ID
 :param: artists [list] of [int] artists ID
 :param: decades [list] of [int] decades ID
 :param: freetext [string] free text
 """
-def genratePlaylist(genres, countries, artists, decades, freetext):
+def genratePlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics):
 
     # implement logic to create customized playlist by the given parameters
     # run as a seperate process to allow preloader
 
+    id = getRandomPlaylist().id
+    
     # dummyDB
     print 'generating a playlist from the following parameters:\n' \
           'Genres: {0}\n' \
           'Countries: {1}\n' \
           'Artists: {2}\n' \
           'Decades: {3}\n' \
-          'Freetext: {4}'.format(genres, countries, artists, decades, freetext)
-    return getRandomPlaylist().id
+          'Freetext: {4}\n' \
+          'Live: {5}\n' \
+          'Cover: {6}\n' \
+          'With Lyrics: {7}\n' \
+          .format(genres, countries, artists, decades, freetext, live, cover, withlyrics)
 
+    # Create the playlist and connect it to all the tables
+    createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics)          
+    # Load videos by filter and set them in new playlist
+    loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics)
+          
+    return id
+
+def reloadVideos(p):
+    
+    # First delete current videos that are connected to this playlist then load new videos
+    newVideos = loadVideos(p.id, p.genres, p.countries, p.artists, p.decades, p.freetext, p.live, p.cover, p.withlyrics)
+    
+    p.video_list = newVideos
+    pass
+
+"""
+Loads videos using the given filter parameters
+:returns: [playlist]
+:param: id [int] playlist id
+:param: genres [list] of [int] genres ID
+:param: countries [list] of [int] country ID
+:param: artists [list] of [int] artists ID
+:param: decades [list] of [int] decades ID
+:param: freetext [string] free text
+"""
+def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
+    
+    # Here comes a big composite query that first deletes current videos from playlist
+    # Then it generates new videos according to filter
+    # Then it connects new video ids to the playlist
+    
+    return []
+
+"""
+Creates a new playlist in the DB
+:returns: [int] playlist id
+:param: name [string] of the playlist
+:param: genres [list] of [int] genres ID
+:param: countries [list] of [int] country ID
+:param: artists [list] of [int] artists ID
+:param: decades [list] of [int] decades ID
+:param: freetext [string] free text
+
+"""
+def createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics):
+    
+    # Here comes a query that inserts a new playlist
+    # Then connects the playlist to artist table
+    # Then connects the playlist to genre table
+    # Then connects the playlist to country table
+    # Then connects the playlist to decades
+    pass
 
 """
 Query DB if the requested playlist exists
