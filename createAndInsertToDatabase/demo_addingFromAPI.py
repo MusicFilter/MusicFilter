@@ -45,6 +45,29 @@ def isGenreExists(genreId):
         return False
     return True
 
+def isCountryExists(countryId):
+    cur.execute(
+    """SELECT country_id
+       FROM country
+       WHERE country_id = %s""", (countryId,))
+
+    msg = cur.fetchone()
+    if not msg:
+        return False
+    return True
+
+def isArtistGenreExists(artistId, genreId):
+    cur.execute(
+    """SELECT genre_id
+       FROM artist_genre
+       WHERE artist_id = %s and genre_id = %s""", (artistId, genreId))
+
+    msg = cur.fetchone()
+    if not msg:
+        return False
+    return True
+    
+
 def insertVideo(VideoDict):
 ##    if isSongExists(VideoDict['song_id']) == False:
     cur.execute(
@@ -93,13 +116,31 @@ def insertPlaylist(PlaylistDict):
     cur.execute(
             """INSERT INTO playlist (playlist_id, playlist_name,
                             creation_date, description,
-                                    play_count, is_live, is_cover, is_with_lyrics, free_text)
+                play_count, is_live, is_cover, is_with_lyrics, free_text)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",(PlaylistDict['playlist_id'],PlaylistDict['playlist_name'], PlaylistDict['creation_date'],
                                                                  PlaylistDict['description'], PlaylistDict['play_count'],
                                                                  PlaylistDict['is_live'],
                                                                  PlaylistDict['is_cover'],PlaylistDict['is_with_lyrics'],PlaylistDict['free_text'])
             )
     con.commit()
+
+def insertToArtistGenre(ArtistGenreDict):
+    if isArtistGenreExists(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id']) == False:
+        cur.execute(
+            """INSERT INTO artist_genre (artist_id, genre_id)
+                VALUES (%s, %s);""",(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id'])
+            )
+        con.commit()
+
+def insertCountry(CountryDict):
+    if isCountryExists(CountryDict['country_id']) == False:
+        cur.execute(
+            """INSERT INTO country (country_id, country_name)
+                VALUES (%s, %s);""",(CountryDict['country_id'], CountryDict['country_name'])
+        )
+        con.commit()
+
+
     
     
 
