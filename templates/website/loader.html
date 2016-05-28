@@ -33,16 +33,16 @@
 <body>    
 
     <!-- Header -->
-    <header id="top" class="player">
+    <header id="top" class="loader">
         <div class="text-vertical-center">
             <a href="/" data-toggle="tooltip" title="Back Home" class="btn btn-lg"><i class="fa fa-home fa-4x"></i></a>
-            <a href="/player/{{ playlist.id }}/reshuffle" data-toggle="tooltip" title="Reshuffle" class="btn btn-lg"><i class="fa fa-random fa-4x"></i></a>
             <h1>
                 <span style="font-weight: 400; color: white;">MUSIC</span><span style="font-weight: 700; color: #337ab7;">FILTER</span>
             </h1>
-            <h3 style="color: crimson;">{{ playlist.name }}</h3>
+            <h3 style="color: crimson;">Generating Your Playlist</h3>
+            <h4 style="color: white;">JS should poll backend until playlist #{{ playlist_id }} is ready</h4>
             <br><br>
-            <div id="player"></div>
+            <img src="{% static "img/loader.gif" %}" >
         </div>
     </header>    
 
@@ -74,60 +74,6 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static "js/bootstrap.min.js" %}"></script>
-
-    <script>
-
-        $(function() {
-            // YouTube initialization code
-            var tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            var firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        });
-
-        // YouTube playlist videos. Will be loaded from DB
-        var player;
-        //var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
-        var playlist = [
-            {% for video in playlist.video_list %}
-            '{{ video }}',
-            {% endfor %}
-        ];
-
-        // YouTube functions
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '315',
-                width: '560',
-                playerVars : {
-                    playlist: playlist.join(','),
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
-
-
-        function onPlayerReady(event) {
-            event.target.playVideo();
-        }
-
-        var done = false;
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING && !done) {
-                setTimeout(stopVideo, 6000);
-                done = true;
-            }
-        }
-
-        function stopVideo() {
-            player.stopVideo();
-        }
-
-    </script>
 
 </body>
 

@@ -13,6 +13,8 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+    
+    <link href="{% static "css/bootstrap-select.min.css" %}" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link href="{% static "css/stylish-portfolio.css" %}" rel="stylesheet">
@@ -55,10 +57,12 @@
     <!-- Header -->
     <header id="top" class="header">
         <div class="text-vertical-center">
-            <h1 style="color: white;">Music Filter</h1>
+            <h1>
+                <span style="font-weight: 400; color: white;">MUSIC</span><span style="font-weight: 700; color: #337ab7;">FILTER</span>
+            </h1>
             <h3 style="color: crimson;">Personalized YouTube Experience</h3>
-            <a href="#listen" class="btn btn-lg"><i class="fa fa-headphones fa-4x"></i></a>
-            <a href="#create" class="btn btn-lg"><i class="fa fa-plus fa-4x"></i></a>
+            <a href="#listen" data-toggle="tooltip" title="Choose Playlist" class="btn btn-lg"><i class="fa fa-headphones fa-4x"></i></a>
+            <a href="#create" data-toggle="tooltip" title="Create Playlist" class="btn btn-lg"><i class="fa fa-plus fa-4x"></i></a>
         </div>
     </header>
 
@@ -78,7 +82,7 @@
             <!-- Trending header -->
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h3>Now Trending</h3>
+                    <h3>Trending</h3>
                     <hr class="small">
                     <br>
                 </div>
@@ -148,9 +152,69 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2>Create your own customized playlist</h2>
-                    <p class="lead">Form</p>
-                    <div id="player"></div>
+                    <h1>Create your own customized playlist</h1>
+                    <hr class="large">
+                    <br>
+
+                    <form role="createPlaylist" action="/generator/" method="post">
+                        {% csrf_token %}
+                    	<fieldset class="form-group col-md-3">
+                    		<label for="genre">Choose your genres...</label>
+						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in genres %}
+							  	<option value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="artist">Choose your artists...</label>
+							<select name="artist" id="artist" title="We got 'em all" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in artists %}
+							  	<option value="{{ item.id }}">{{ item.name }}</option>
+                            {% endfor %}
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="decade">Choose your decades...</label>
+							<select id="decade" name="decade" title="From the 60s to our days" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							  <option>1960s</option>
+							  <option>1970s</option>
+							  <option>1980s</option>
+							  <option>1990s</option>
+							  <option>2000s</option>
+							  <option>2010s</option>
+							</select>
+						</fieldset>
+						
+						<fieldset class="form-group col-md-3">
+							<label for="country">Choose your countries...</label>
+							<select name="country" id="country" title="It doesn't stop in the US" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
+							{% for item in countries %}
+							  	<option value="{{ item.id }}">{{ item }}</option>
+                            {% endfor %}
+							</select>
+						</fieldset>
+					   
+					   <fieldset class="vertical form-group">
+					   	   <label class="filter-label">
+						      <input name="live" id="live" type="checkbox"> Give me live versions!
+                           </label>
+						    
+						     
+					   	   <label class="filter-label">
+						      <input name="cover" id="cover" type="checkbox"> Give me cover versions!
+						    </label>
+						</fieldset>
+						
+						<fieldset class="vertical form-group col-md-12">
+							<input name="text" class="form-control" id="freetext" type="text" placeholder="...and anything that comes to your mind">
+						</fieldset>
+						
+						<br>
+						<button id="submit-btn" type="submit" class="btn btn-lg btn-light">Create!<i class="create-icon fa fa-arrow-circle-right fa-2x"></i></button>
+					</form>
                 </div>
             </div>
             <!-- /.row -->
@@ -186,6 +250,8 @@
 
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static "js/bootstrap.min.js" %}"></script>
+    
+    <script src="{% static "js/bootstrap-select.min.js" %}"></script>
 
     <!-- Custom Theme JavaScript -->
     <script>
@@ -216,51 +282,8 @@
                 }
             }
         });
-        
-        
-        // YouTube initialization code
-        var tag = document.createElement('script');
-
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+       
     });
-    
-    
-    // YouTube playlist videos. Will be loaded from DB
-    var player;
-    var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
-    
-    // YouTube functions
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-            height: '315',
-            width: '560',
-            playerVars : {
-                playlist: playlist.join(','),
-            },
-        	events: {
-            	'onReady': onPlayerReady,
-            	'onStateChange': onPlayerStateChange
-          	}
-        });
-    }
-    
-    
-    function onPlayerReady(event) {
-        event.target.playVideo();
-      }
-
-      var done = false;
-      function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING && !done) {
-          setTimeout(stopVideo, 6000);
-          done = true;
-        }
-      }
-      function stopVideo() {
-        player.stopVideo();
-      }
 
     </script>
 

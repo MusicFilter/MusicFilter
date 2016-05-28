@@ -1,4 +1,41 @@
 from datetime import datetime
+from random import shuffle
+
+class Artist:
+    
+    """
+    self.id
+    self.name
+    self.country
+    self.genres
+    """
+    
+    """
+    Constructor
+    """
+    def __init__(self, id):
+        # init fields
+        self.id = id
+        self.name = ''
+        self.country = ''
+        self.genres = []
+
+        # populate fields from BD
+        self.fetch()
+        
+    """
+    toString
+    """
+    def __str__(self):
+        return 'Artist[id={0}, name={1}, country={2}]'.format(self.id, self.name, self.country)
+    
+    """
+    Populate fields from DB
+    Don't fetch video list!
+    """
+    def fetch(self):
+        # TODO
+        pass
 
 class Playlist:
 
@@ -64,3 +101,6 @@ class Playlist:
 
         elif e.seconds > 0:
             self.elapsed = '{0}s ago'.format(e.seconds)
+
+    def reshuffle(self):
+        shuffle(self.video_list)

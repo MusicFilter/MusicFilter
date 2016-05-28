@@ -183,8 +183,6 @@ hr.small {
     background-color: #337ab7;
 }
 
-
-
 /* Create */
 
 .create {
@@ -193,10 +191,14 @@ hr.small {
     background-color: crimson ;
 }
 
-/* About */
+/* Loader */
 
-.about {
-    padding: 50px 0;
+.loader {
+    display: table;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #262626;
 }
 
 /* Player */
@@ -212,70 +214,37 @@ hr.small {
     -o-background-size: cover;
 }
 
-/* Services */
+/* Form CSS */
 
-.services {
-    padding: 50px 0;
+.filter {
+	
+	display: inline-block;
+	padding: 10px;
 }
 
-.service-item {
-    margin-bottom: 100px;
-    margin-left: auto;
-    margin-right: auto;
+.filter-label {
+	padding: 0 10px;
 }
 
-/* Callout */
-
-.callout {
-    display: table;
-    width: 100%;
-    height: 400px;
-    color: #fff;
-    background: url(../img/callout.jpg) no-repeat center center scroll;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    background-size: cover;
-    -o-background-size: cover;
+.vertical {
+	width: 100%;
+	padding: 5px 0;
 }
 
-/* Portfolio */
-
-.portfolio {
-    padding: 50px 0;
+.create-icon {
+	color: crimson;
+	padding-left: 15px;
+	vertical-align: sub;
 }
 
-.portfolio-item {
-    margin-bottom: 30px;
+#submit-btn {
+	margin-top: 15px;
+	font-size: 24px;
+	color: crimson;
 }
 
-.img-portfolio {
-    margin: 0 auto;
-}
-
-.img-portfolio:hover {
-    opacity: 0.8;
-}
-
-/* Call to Action */
-
-.call-to-action {
-    padding: 50px 0;
-}
-
-.call-to-action .btn {
-    margin: 10px;
-}
-
-/* Map */
-
-.map {
-    height: 500px;
-}
-
-@media(max-width:768px) {
-    .map {
-        height: 75%;
-    }
+#freetext {
+	text-align: center;
 }
 
 /* Footer */
