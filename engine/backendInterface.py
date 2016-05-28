@@ -205,7 +205,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     if (len(decades) > 0):
         select_command += "artist.dominant_decade IN (%s) AND \n"
 
-    select_command += """
+    select_command += """ 
                                                                     (video.title LIKE '%%s%' OR 
                                                                     video.description LIKE '%%s%') AND   
                                                                     video.is_live = %s AND
