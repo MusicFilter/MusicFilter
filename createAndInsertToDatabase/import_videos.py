@@ -4,6 +4,8 @@ from collections import Counter
 
 from apiclient.discovery import build
 
+from demo_addingFromAPI import *
+
 DEVELOPER_KEY = "AIzaSyCUyZXok3rrT88dpo2FEPY7hripKOmdRVQ"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
@@ -109,7 +111,6 @@ def wikidata_entity_string_to_id(entity_string):
 
 def youtube_video(video_id):
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
-    # videos_list_response = youtube.videos().list(part="id,snippet,contentDetails,topicDetails", id=video_id).execute()
     videos_list_response = youtube.videos().list(part="id,contentDetails", id=video_id).execute()
 
     if not videos_list_response["items"]:
@@ -262,5 +263,6 @@ def build_database():
         insertCountry(artist_details['country'])
         for genre in artist_details['genres']:
             insertGenre(genre)
+            insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['genre_id']})
         for video in artist_details['videos']:
             insertVideo(video)
