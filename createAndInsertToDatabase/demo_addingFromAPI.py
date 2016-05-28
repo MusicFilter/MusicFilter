@@ -117,10 +117,7 @@ def insertPlaylist(PlaylistDict):
             """INSERT INTO playlist (playlist_id, playlist_name,
                             creation_date, description,
                 play_count, is_live, is_cover, is_with_lyrics, free_text)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",(PlaylistDict['playlist_id'],PlaylistDict['playlist_name'], PlaylistDict['creation_date'],
-                                                                 PlaylistDict['description'], PlaylistDict['play_count'],
-                                                                 PlaylistDict['is_live'],
-                                                                 PlaylistDict['is_cover'],PlaylistDict['is_with_lyrics'],PlaylistDict['free_text'])
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",(PlaylistDict['playlist_id'],PlaylistDict['playlist_name'], PlaylistDict['creation_date'],PlaylistDict['description'], PlaylistDict['play_count'],PlaylistDict['is_live'],PlaylistDict['is_cover'],PlaylistDict['is_with_lyrics'],PlaylistDict['free_text'])
             )
     con.commit()
 
