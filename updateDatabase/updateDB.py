@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import MySQLdb as mdb
+from password import *
 
-con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
+con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
