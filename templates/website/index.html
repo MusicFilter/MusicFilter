@@ -150,6 +150,7 @@
                 <div class="col-lg-12 text-center">
                     <h2>Create your own customized playlist</h2>
                     <p class="lead">Form</p>
+                    <div id="player"></div>
                 </div>
             </div>
             <!-- /.row -->
@@ -215,7 +216,52 @@
                 }
             }
         });
+        
+        
+        // YouTube initialization code
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
     });
+    
+    
+    // YouTube playlist videos. Will be loaded from DB
+    var player;
+    var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
+    
+    // YouTube functions
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '315',
+            width: '560',
+            playerVars : {
+                playlist: playlist.join(','),
+            },
+        	events: {
+            	'onReady': onPlayerReady,
+            	'onStateChange': onPlayerStateChange
+          	}
+        });
+    }
+    
+    
+    function onPlayerReady(event) {
+        event.target.playVideo();
+      }
+
+      var done = false;
+      function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING && !done) {
+          setTimeout(stopVideo, 6000);
+          done = true;
+        }
+      }
+      function stopVideo() {
+        player.stopVideo();
+      }
+
     </script>
 
 </body>
