@@ -1,5 +1,13 @@
 from dummyDB import dummy_db, getRandomPlaylist
 from engine.dummyDB import artist_db
+import MySQLdb as mdb
+
+# Read connection details from properties
+con = mdb.connect('localhost', 'root', 'B3agl34', 'musicfilter')
+
+cur = con.cursor(mdb.cursors.DictCursor)
+
+cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
 """
 Get all countries from DB
@@ -149,6 +157,90 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     # Here comes a big composite query that first deletes current videos from playlist
     # Then it generates new videos according to filter
     # Then it connects new video ids to the playlist
+    
+    select_command = """
+    SELECT DISTINCT filtered_videos.id
+    FROM   (SELECT     @a:=@a+1 AS num, video.video_id AS id
+            FROM     video, artist, country, artist_genre, genre
+            WHERE     video.artist_id = artist.artist_id AND
+                    artist_genre.artist_id = artist.artist_id AND
+                    artist_genre.genre_id = genre.genre_id AND 
+    """
+                    
+    if (len(genres) > 0):
+        select_command += "genre.genre_id IN (%s) AND \n"
+        
+    if (len(countries) > 0):
+        select_command += "artist.country_id IN (%s) AND \n"
+        
+    if (len(artists) > 0):
+        select_command += "artist.artist_id IN (%s) AND \n"
+        
+    if (len(decades) > 0):
+        select_command += "artist.dominant_decade IN (%s) AND \n"
+
+    select_command += """
+                    (video.title LIKE '%%s%' OR 
+                    video.description LIKE '%%s%') AND            
+                    video.is_live = %s AND
+                    video.is_cover = %s AND
+                    video.with_lyrics = %s) as filtered_videos
+    WHERE     filtered_videos.num IN (SELECT     * 
+                                    FROM     (SELECT FLOOR(((SELECT COUNT(*)
+                                                            FROM     video, artist, country, artist_genre, genre
+                                                            WHERE     video.artist_id = artist.artist_id AND
+                                                                    artist_genre.artist_id = artist.artist_id AND
+                                                                    artist_genre.genre_id = genre.genre_id AND
+                                                                    """
+                                                                    
+    if (len(genres) > 0):
+        select_command += "genre.genre_id IN (%s) AND \n"
+        
+    if (len(countries) > 0):
+        select_command += "artist.country_id IN (%s) AND \n"
+        
+    if (len(artists) > 0):
+        select_command += "artist.artist_id IN (%s) AND \n"
+        
+    if (len(decades) > 0):
+        select_command += "artist.dominant_decade IN (%s) AND \n"
+
+    select_command += """
+                                                                    (video.title LIKE '%%s%' OR 
+                                                                    video.description LIKE '%%s%') AND   
+                                                                    video.is_live = %s AND
+                                                                    video.is_cover = %s AND
+                                                                    video.with_lyrics = %s) + 1) * RAND()) num
+                                            FROM video
+                                            LIMIT 110) random)
+    LIMIT 100"""
+    
+    cur.execute(select_command, \
+                (', '.join(str(x) for x in genres),\
+                ', '.join(str(x) for x in countries),\
+                ', '.join(str(x) for x in artists),\
+                ', '.join(str(x) for x in decades),\
+                freetext, freetext,\
+                1, 0, 0,\
+                ', '.join(str(x) for x in genres),\
+                ', '.join(str(x) for x in countries),\
+                ', '.join(str(x) for x in artists),\
+                ', '.join(str(x) for x in decades),\
+                freetext, freetext,\
+                1, 0, 0))
+    
+    update_command = """DELETE FROM playlist_to_video
+       WHERE playlist_id = %s; 
+       """
+       
+    update_command += """INSERT INTO playlist_to_video
+       VALUES (%s, %s);
+       """
+    
+    data = ()
+    cur.execute(update_command, data)
+
+    con.commit()
     
     return []
 
