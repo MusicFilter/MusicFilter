@@ -7,12 +7,18 @@ Homepage
 """
 def home(request):
 
+    top_artist, top_genre, top_decade, top_country = backendInterface.getTopHits()
+
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
         'countries':    backendInterface.getCountries(),
         'artists':      backendInterface.getArtists(),
-        'genres':       backendInterface.getGenres()
+        'genres':       backendInterface.getGenres(),
+        'top_artist':   top_artist,
+        'top_genre':    top_genre,
+        'top_decade':   top_decade,
+        'top_country':  top_country
     }
 
     return render(request, 'index.html', context)

@@ -125,3 +125,20 @@ def isPlaylistExists(playlist_id):
 
     # dummyDB
     return True
+
+
+"""
+Returns most popular items
+:returns: [tuple] of [string] - top_artist, top_genre, top_decade, top_country
+"""
+def getTopHits():
+
+    # get results from DB
+
+    # dummy DB
+    top_artist = 'Dedi Dadon'
+    top_genre = 'Classical Indie Pop Rock'
+    top_decade = '1950s'
+    top_country = 'Portugal'
+
+    return top_artist, top_genre, top_decade, top_country
