@@ -1,116 +1,37 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#import warnings
 import MySQLdb as mdb
 
-con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
+con = mdb.connect('localhost', 'root', 'password', 'musicfilter', use_unicode=True, charset='utf8')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
 cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
-##def isSongExists(songId):
-##    cur.execute(
-##    """SELECT song_id
-##       FROM song
-##       WHERE song_id = %s""", (songId,))
-##
-##    msg = cur.fetchone()
-##    if not msg:
-##        return False
-##    return True
-    
-    
-
-def isArtistExists(artistId):
-    cur.execute(
-    """SELECT artist_id
-       FROM artist
-       WHERE artist_id = %s""", (artistId,))
-
-    msg = cur.fetchone()
-    if not msg:
-        return False
-    return True
-
-def isGenreExists(genreId):
-    cur.execute(
-    """SELECT genre_id
-       FROM genre
-       WHERE genre_id = %s""", (genreId,))
-
-    msg = cur.fetchone()
-    if not msg:
-        return False
-    return True
-
-def isCountryExists(countryId):
-    cur.execute(
-    """SELECT country_id
-       FROM country
-       WHERE country_id = %s""", (countryId,))
-
-    msg = cur.fetchone()
-    if not msg:
-        return False
-    return True
-
-def isArtistGenreExists(artistId, genreId):
-    cur.execute(
-    """SELECT genre_id
-       FROM artist_genre
-       WHERE artist_id = %s and genre_id = %s""", (artistId, genreId))
-
-    msg = cur.fetchone()
-    if not msg:
-        return False
-    return True
-    
-
 def insertVideo(VideoDict):
-##    if isSongExists(VideoDict['song_id']) == False:
     cur.execute(
         """INSERT INTO video (video_id, title, description, artist_id,
-                                    duration, is_cover, is_live, with_lyrics)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);""",(VideoDict['video_id'], VideoDict['title'],
-                VideoDict['description'],VideoDict['artist_id'], VideoDict['duration'], VideoDict['is_cover'], VideoDict['is_live'], VideoDict['with_lyrics'])
+                                    is_cover, is_live, with_lyrics)
+                VALUES (%s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE video_id=video_id;""",(VideoDict['video_id'], VideoDict['title'],
+                VideoDict['description'],VideoDict['artist_id'], VideoDict['is_cover'], VideoDict['is_live'], VideoDict['with_lyrics'])
         )
     con.commit()
-##    insertSong(SongDict)
         
-
-##def insertSong(SongDict, ArtistDict, GenreDict):
-##    cur.execute(
-##            """INSERT INTO song (song_id, song_name, artist_id, year,
-##                                    genre_id)
-##                VALUES (%s, %s, %s, %s, %s);""",(SongDict['song_id'],SongDict['song_name'], SongDict['artist_id'], SongDict['year'], SongDict['genre_id'])
-##            )
-##    con.commit()
-##    if isArtistExists(SongDict['artist_id']) == False:
-##        insertArtist(ArtistDict)
-##    if isGenreExists(SongDict['genre_id']) == False:
-##        insertGenre(GenreDict)
-        
-
-
 def insertArtist(ArtistDict):
-    if isArtistExists(ArtistDict['artist_id']) == False:
-        cur.execute(
-            """INSERT INTO artist (artist_id, artist_name,dominant_decade,  country_id, is_band)
-                VALUES (%s, %s, %s, %s, %s);""",(ArtistDict['artist_id'],
-                ArtistDict['artist_name'], ArtistDict['dominant_decade'],ArtistDict['country_id'], ArtistDict['is_band'])
-        )
-        con.commit()
-
+    cur.execute(
+        """INSERT INTO artist (artist_id, artist_name,dominant_decade,  country_id, is_band)
+            VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE artist_id=artist_id;""",(ArtistDict['artist_id'],
+            ArtistDict['artist_name'], ArtistDict['dominant_decade'],ArtistDict['country_id'], ArtistDict['is_band'])
+    )
+    con.commit()
 
 def insertGenre(GenreDict):
-    if isGenreExists(GenreDict['genre_id']) == False:
-        cur.execute(
-            """INSERT INTO genre (genre_id, genre_name)
-                VALUES (%s, %s);""",(GenreDict['genre_id'], GenreDict['genre_name'])
-        )
-        con.commit()
+    cur.execute(
+        """INSERT INTO genre (genre_id, genre_name)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE genre_id=genre_id;""",(GenreDict['genre_id'], GenreDict['genre_name'])
+    )
+    con.commit()
 
 def insertPlaylist(PlaylistDict):
     cur.execute(
@@ -121,26 +42,16 @@ def insertPlaylist(PlaylistDict):
             )
     con.commit()
 
-def insertToArtistGenre(ArtistGenreDict):
-    if isArtistGenreExists(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id']) == False:
-        cur.execute(
-            """INSERT INTO artist_genre (artist_id, genre_id)
-                VALUES (%s, %s);""",(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id'])
-            )
-        con.commit()
+def insertArtistGenre(ArtistGenreDict):
+    cur.execute(
+        """INSERT INTO artist_genre (artist_id, genre_id)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE artist_id=artist_id, genre_id=genre_id;""",(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id'])
+        )
+    con.commit()
 
 def insertCountry(CountryDict):
-    if isCountryExists(CountryDict['country_id']) == False:
-        cur.execute(
-            """INSERT INTO country (country_id, country_name)
-                VALUES (%s, %s);""",(CountryDict['country_id'], CountryDict['country_name'])
-        )
-        con.commit()
-
-
-    
-    
-
-
-    
-
+    cur.execute(
+        """INSERT INTO country (country_id, country_name)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE country_id=country_id;""",(CountryDict['country_id'], CountryDict['country_name'])
+    )
+    con.commit()

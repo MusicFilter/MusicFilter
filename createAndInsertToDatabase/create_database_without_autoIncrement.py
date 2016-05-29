@@ -6,7 +6,7 @@ import MySQLdb as mdb
 
 warnings.filterwarnings("ignore", "unknown table.*")
 
-con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
+con = mdb.connect('localhost', 'root', 'password', 'musicfilter', use_unicode=True, charset='utf8')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
@@ -27,10 +27,9 @@ cur.execute("DROP TABLE IF EXISTS PLAYLIST_COUNTRY")
 
 create_video_table = """CREATE TABLE VIDEO(
 						video_id CHAR(11) PRIMARY KEY,
-						title CHAR(30),
-						description CHAR(100),
+						title CHAR(255),
+						description TEXT,
 						artist_id INT,
-						duration INT,
 						is_cover BOOLEAN,
 						is_live BOOLEAN,
 						with_lyrics BOOLEAN,
@@ -54,13 +53,14 @@ cur.execute(create_artist_table)
 
 create_genre_table = """CREATE TABLE GENRE(
 						genre_id INT PRIMARY KEY,
-						genre_name CHAR(15))"""
+						genre_name CHAR(60))"""
 
 cur.execute(create_genre_table)
 
 create_artistGenre_table = """CREATE TABLE ARTIST_GENRE(
 						artist_id INT,
-						genre_id INT)"""
+						genre_id INT,
+						PRIMARY KEY (artist_id, genre_id))"""
 
 cur.execute(create_artistGenre_table)
 

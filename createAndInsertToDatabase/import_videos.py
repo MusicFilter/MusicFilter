@@ -1,5 +1,6 @@
 import json
 import requests
+import time
 from collections import Counter
 
 from apiclient.discovery import build
@@ -9,6 +10,11 @@ from demo_addingFromAPI import *
 DEVELOPER_KEY = "AIzaSyCUyZXok3rrT88dpo2FEPY7hripKOmdRVQ"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
+
+YOUTUBE_SEARCH_COUNT = 0
+YOUTUBE_SEARCH_LIMIT = 10000
+YOUTUBE_QUOTA_INTERVAL = 24 * 61 * 60
+YOUTUBE_QUOTA_START = None
 
 WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
@@ -75,7 +81,9 @@ PROP_LOCATION_OF_FORMATION = 'P740'
 ARTIST_TYPE_BAND = 'B'
 ARTIST_TYPE_SOLO = 'S'
 
-VIDEOS_PER_ARTIST = 2
+VIDEOS_PER_ARTIST = 8
+
+WIKIDATA_ENTITIES = {}
 
 def wdqs_query(query):
     service_url = "https://query.wikidata.org/sparql"
@@ -90,6 +98,12 @@ def wikidata_entity(wikidata_id):
                                    'languages': 'en',
                                    'format': 'json'})
     return json.loads(r.text)['entities']['Q%d' % wikidata_id]
+
+def memoized_wikidata_entity(wikidata_id):
+    if wikidata_id not in WIKIDATA_ENTITIES:
+        WIKIDATA_ENTITIES[wikidata_id] = wikidata_entity(wikidata_id)
+
+    return WIKIDATA_ENTITIES[wikidata_id]
 
 def wikidata_label(entity):
     return entity['labels']['en']['value']
@@ -109,16 +123,19 @@ def wikidata_entity_url_to_id(entity_url):
 def wikidata_entity_string_to_id(entity_string):
     return int(entity_string[len("Q"):])
 
-def youtube_video(video_id):
-    youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
-    videos_list_response = youtube.videos().list(part="id,contentDetails", id=video_id).execute()
-
-    if not videos_list_response["items"]:
-        raise Exception("Video '%s' was not found." % video_id)
-
-    return videos_list_response["items"][0]
-
 def youtube_search_by_topic(topic_id):
+    global YOUTUBE_SEARCH_COUNT, YOUTUBE_QUOTA_START
+
+    if YOUTUBE_SEARCH_COUNT == YOUTUBE_SEARCH_LIMIT:
+        sleep_duration = YOUTUBE_QUOTA_INTERVAL - (time.time() - YOUTUBE_QUOTA_START)
+        print "%s: Waiting %.2f hours for YouTube quota to reset" % (time.ctime(), sleep_duration / 3600)
+        print
+        time.sleep(sleep_duration)
+        YOUTUBE_SEARCH_COUNT = 0
+
+    if not YOUTUBE_SEARCH_COUNT:
+        YOUTUBE_QUOTA_START = time.time()
+
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
     search_list_response = youtube.search().list(part="snippet",
                                                  maxResults=VIDEOS_PER_ARTIST,
@@ -128,6 +145,8 @@ def youtube_search_by_topic(topic_id):
                                                  videoCategoryId=10,
                                                  videoEmbeddable="true"
                                                  ).execute()
+
+    YOUTUBE_SEARCH_COUNT += 1
 
     return search_list_response.get("items", [])
 
@@ -139,15 +158,10 @@ def artist_videos(artist):
 
     videos = []
     for search_result in search_results:
-        video_id = search_result['id']['videoId']
-
-        video = youtube_video(video_id)
-
         video_details = {}
-        video_details['video_id'] = video_id
+        video_details['video_id'] = search_result['id']['videoId']
         video_details['title'] = search_result["snippet"]["title"]
         video_details['description'] = search_result["snippet"]["description"]
-        video_details['duration'] = video["contentDetails"]["duration"]
         video_details['is_cover'] = int("cover" in search_result["snippet"]["title"].lower())
         video_details['is_live'] = int("live" in search_result["snippet"]["title"].lower())
         video_details['with_lyrics'] = int("lyrics" in search_result["snippet"]["title"].lower())
@@ -161,7 +175,7 @@ def genre_ids_to_top_genre_ids(genre_ids):
     top_genre_ids = []
 
     for genre_id in genre_ids:
-        genre = wikidata_entity(genre_id)
+        genre = memoized_wikidata_entity(genre_id)
 
         if ID_MUSIC_GENRE in wikidata_item_values(genre, PROP_INSTANCE_OF):
             parent_genre_ids = wikidata_item_values(genre, PROP_SUBCLASS_OF)
@@ -182,7 +196,7 @@ def artist_genres(artist):
 
     for top_genre_id in top_genre_ids:
         genres.append({'genre_id': top_genre_id,
-                       'name': wikidata_label(wikidata_entity(top_genre_id))})
+                       'genre_name': wikidata_label(memoized_wikidata_entity(top_genre_id))})
 
     return genres
 
@@ -206,9 +220,9 @@ def artist_country(artist):
         return None
 
     country_id = countries[0]
-    country = wikidata_entity(country_id)
+    country = memoized_wikidata_entity(country_id)
 
-    return {'country_id': country_id, 'name': wikidata_label(country)}
+    return {'country_id': country_id, 'country_name': wikidata_label(country)}
 
 def artist_decade(artist):
     artist_id = wikidata_entity_string_to_id(artist['id'])
@@ -233,14 +247,18 @@ def get_artist_details(artist_id):
 
     artist = wikidata_entity(artist_id)
 
-    artist_details['artist_id'] = artist_id
-    artist_details['name'] = wikidata_label(artist)
-    artist_details['is_band'] = artist_is_band(artist)
-    artist_details['decade'] = artist_decade(artist)
-
     artist_details['country'] = artist_country(artist)
     artist_details['genres'] = artist_genres(artist)
     artist_details['videos'] = artist_videos(artist)
+
+    artist_details['artist_id'] = artist_id
+    artist_details['artist_name'] = wikidata_label(artist)
+    artist_details['is_band'] = artist_is_band(artist)
+    artist_details['dominant_decade'] = artist_decade(artist)
+    if artist_details['country'] is not None:
+        artist_details['country_id'] = artist_details['country']['country_id']
+    else:
+        artist_details['country_id'] = None
 
     return artist_details
 
@@ -255,14 +273,34 @@ def select_artists():
     return artists
 
 def build_database():
+    print "Selecting artists...",
     artist_ids = select_artists()
+    print "DONE"
 
     for artist_id in artist_ids:
         artist_details = get_artist_details(artist_id)
+        print "Inserting artist %d..." % artist_id,
         insertArtist(artist_details)
-        insertCountry(artist_details['country'])
+        print "DONE"
+        if artist_details['country'] is not None:
+            print "Inserting country %d..." % artist_details['country']['country_id'],
+            insertCountry(artist_details['country'])
+            print "DONE"
         for genre in artist_details['genres']:
+            print "Inserting genre %d..." % genre['genre_id'],
             insertGenre(genre)
+            print "DONE"
+            print "Inserting artist-genre %d-%d..." % (artist_id, genre['genre_id']),
             insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['genre_id']})
+            print "DONE"
         for video in artist_details['videos']:
+            print "Inserting video %s..." % video['video_id'],
             insertVideo(video)
+            print "DONE"
+        print
+
+if __name__ == '__main__':
+    try:
+        build_database()
+    except KeyboardInterrupt:
+        pass
