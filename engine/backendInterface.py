@@ -1,9 +1,11 @@
 from dummyDB import dummy_db, getRandomPlaylist
 from engine.dummyDB import artist_db
 import MySQLdb as mdb
+import time    
+from engine.objects import Playlist
 
 # Read connection details from properties
-con = mdb.connect('localhost', 'root', 'B3agl34', 'musicfilter')
+con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
@@ -113,7 +115,8 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
     # implement logic to create customized playlist by the given parameters
     # run as a seperate process to allow preloader
 
-    id = getRandomPlaylist().id
+    # the id should come from DB
+    #id = getRandomPlaylist().id
     
     # dummyDB
     print 'generating a playlist from the following parameters:\n' \
@@ -128,19 +131,17 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
           .format(genres, countries, artists, decades, freetext, live, cover, withlyrics)
 
     # Create the playlist and connect it to all the tables
-    createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics)          
+    id = createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics)          
     # Load videos by filter and set them in new playlist
-    loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics)
-          
+    videos = loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics)
+    
     return id
 
 def reloadVideos(p):
     
     # First delete current videos that are connected to this playlist then load new videos
     newVideos = loadVideos(p.id, p.genres, p.countries, p.artists, p.decades, p.freetext, p.live, p.cover, p.withlyrics)
-    
     p.video_list = newVideos
-    pass
 
 """
 Loads videos using the given filter parameters
@@ -154,8 +155,28 @@ Loads videos using the given filter parameters
 """
 def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
     
-    # Here comes a big composite query that first deletes current videos from playlist
-    # Then it generates new videos according to filter
+    # Prepare user input
+    string_genres = ', '.join(str(x) for x in genres)
+    string_countries = ', '.join(str(x) for x in countries)
+    string_artists = ', '.join(str(x) for x in artists)
+    string_decades = ', '.join(str(x) for x in decades)
+    if (live == 'on'):
+        string_live = 1
+    else:
+        string_live = 0
+    if (cover == 'on'):
+        string_cover = 1
+    else:
+        string_cover = 0
+    if (withlyrics == 'on'):
+        string_withlyrics = 1
+    else:
+        string_withlyrics = 0
+        
+    select_data = ()
+    
+    # Here comes a big composite query that first generates new videos according to filter
+    # Then it deletes current videos from playlist
     # Then it connects new video ids to the playlist
     
     select_command = """
@@ -169,19 +190,25 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
                     
     if (len(genres) > 0):
         select_command += "genre.genre_id IN (%s) AND \n"
+        select_data = select_data + (string_genres,)
         
     if (len(countries) > 0):
         select_command += "artist.country_id IN (%s) AND \n"
+        select_data = select_data + (string_countries,)
         
     if (len(artists) > 0):
         select_command += "artist.artist_id IN (%s) AND \n"
+        select_data = select_data + (string_artists,)
         
     if (len(decades) > 0):
         select_command += "artist.dominant_decade IN (%s) AND \n"
+        select_data = select_data + (string_decades,)
+        
+    if (len(freetext) > 0):
+        select_command += "(video.title LIKE '%%s%' OR video.description LIKE '%%s%') AND \n"
+        select_data = select_data + (freetext, freetext,)
 
-    select_command += """
-                    (video.title LIKE '%%s%' OR 
-                    video.description LIKE '%%s%') AND            
+    select_command += """          
                     video.is_live = %s AND
                     video.is_cover = %s AND
                     video.with_lyrics = %s) as filtered_videos
@@ -193,21 +220,29 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
                                                                     artist_genre.genre_id = genre.genre_id AND
                                                                     """
                                                                     
+    select_data = select_data + (string_live, string_cover, string_withlyrics,)
+                                                                    
     if (len(genres) > 0):
         select_command += "genre.genre_id IN (%s) AND \n"
+        select_data = select_data + (string_genres,)
         
     if (len(countries) > 0):
         select_command += "artist.country_id IN (%s) AND \n"
+        select_data = select_data + (string_countries,)
         
     if (len(artists) > 0):
         select_command += "artist.artist_id IN (%s) AND \n"
+        select_data = select_data + (string_artists,)
         
     if (len(decades) > 0):
         select_command += "artist.dominant_decade IN (%s) AND \n"
+        select_data = select_data + (string_decades,)
+        
+    if (len(freetext) > 0):
+        select_command += "(video.title LIKE '%%s%' OR video.description LIKE '%%s%') AND \n"
+        select_data = select_data + (freetext, freetext,)
 
-    select_command += """
-                                                                    (video.title LIKE '%%s%' OR 
-                                                                    video.description LIKE '%%s%') AND   
+    select_command += """   
                                                                     video.is_live = %s AND
                                                                     video.is_cover = %s AND
                                                                     video.with_lyrics = %s) + 1) * RAND()) num
@@ -215,34 +250,27 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
                                             LIMIT 110) random)
     LIMIT 100"""
     
-    cur.execute(select_command, \
-                (', '.join(str(x) for x in genres),\
-                ', '.join(str(x) for x in countries),\
-                ', '.join(str(x) for x in artists),\
-                ', '.join(str(x) for x in decades),\
-                freetext, freetext,\
-                1, 0, 0,\
-                ', '.join(str(x) for x in genres),\
-                ', '.join(str(x) for x in countries),\
-                ', '.join(str(x) for x in artists),\
-                ', '.join(str(x) for x in decades),\
-                freetext, freetext,\
-                1, 0, 0))
+    select_data = select_data + (string_live, string_cover, string_withlyrics,)
     
+    cur.execute(select_command, select_data)
+    video_ids = cur.fetchall()
+    
+    # Create one big insert command to minimize I/O
+    insert_data = (id)
     update_command = """DELETE FROM playlist_to_video
        WHERE playlist_id = %s; 
        """
        
-    update_command += """INSERT INTO playlist_to_video
-       VALUES (%s, %s);
-       """
+    for video_id in video_ids:
+        update_command += """INSERT INTO playlist_to_video
+           VALUES (%s, %s);
+           """
+        insert_data = insert_data + (id, video_id,)
     
-    data = ()
-    cur.execute(update_command, data)
-
+    cur.execute(update_command, insert_data)
     con.commit()
     
-    return []
+    return video_ids 
 
 """
 Creates a new playlist in the DB
@@ -262,7 +290,59 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     # Then connects the playlist to genre table
     # Then connects the playlist to country table
     # Then connects the playlist to decades
-    pass
+    
+    # This id should be auto increment!
+    playlist_id = 1
+    
+    # Create one big insert command to minimize I/O
+    insert_command = """INSERT INTO playlist
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        
+    if (live == 'on'):
+        string_live = 1
+    else:
+        string_live = 0
+    if (cover == 'on'):
+        string_cover = 1
+    else:
+        string_cover = 0
+    if (withlyrics == 'on'):
+        string_withlyrics = 1
+    else:
+        string_withlyrics = 0
+        
+    # What to do with description ??
+    insert_data = (playlist_id, name, time.strftime('%Y-%m-%d %H:%M:%S'), "", 0, string_live, string_cover, string_withlyrics, freetext)
+    
+    for artist_id in artists:
+        insert_command += """INSERT INTO playlist_artist
+            VALUES (%s, %s);
+            """
+        insert_data = insert_data + (playlist_id, artist_id,)
+    
+    for country_id in countries:
+        insert_command += """INSERT INTO playlist_country
+            VALUES (%s, %s);
+            """
+        insert_data = insert_data + (playlist_id, country_id,)
+    
+    for genre_id in genres:
+        insert_command += """INSERT INTO playlist_genre
+            VALUES (%s, %s);
+            """
+        insert_data = insert_data + (playlist_id, genre_id,)    
+    
+    for decade_id in decades:
+        insert_command += """INSERT INTO playlist_decade
+            VALUES (%s, %s);
+            """
+        insert_data = insert_data + (playlist_id, decade_id,) 
+    
+    cur.execute(insert_command, insert_data)
+    con.commit()
+    
+    return playlist_id
 
 """
 Query DB if the requested playlist exists
