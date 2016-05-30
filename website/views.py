@@ -45,6 +45,7 @@ def player(request, playlist_id, action=None):
     # update hit count
     else:
         backendInterface.incrementHitCount(playlist_id)
+        p.hits += 1
 
     # playlist not found
     if p == -1:
@@ -56,7 +57,6 @@ def player(request, playlist_id, action=None):
     else:
         context = {
             'playlist': p,
-            'description' : p.getDescription(),
             'action': action
         }
 
@@ -69,21 +69,44 @@ Generator
 def generator(request):
     if request.method == 'POST':
         
-        generatedPlaylistID = backendInterface.genratePlaylist(
-            name=request.POST.get('name'),
-            genres=request.POST.getlist('genre'),
-            countries=request.POST.getlist('country'),
-            decades=request.POST.getlist('decade'),
-            artists=request.POST.getlist('artist'),
-            freetext=request.POST.get('text'),
-            live=request.POST.get('live'),
-            cover=request.POST.get('cover'),
-            withlyrics=request.POST.get('withlyrics')
+        name = request.POST.get('name')
+        freetext=request.POST.get('text')
+        
+        artists = []
+        for artist in request.POST.getlist('artist'):
+            artists.append(tuple(artist.split(':')))
+            
+        genres = []
+        for genre in request.POST.getlist('genre'):
+            genres.append(tuple(genre.split(':')))
+            
+        countries = []
+        for country in request.POST.getlist('country'):
+            countries.append(tuple(country.split(':')))
+        
+        decades = []
+        for decade in request.POST.getlist('decade'):
+            decades.append(tuple(decade.split(':')))
+              
+        if (request.POST.get('live') == 'on'):
+            live = 1
+        else:
+            live = 0
+        if (request.POST.get('cover') == 'on'):
+            cover = 1
+        else:
+            cover = 0
+        if (request.POST.get('withlyrics') == 'on'):
+            withlyrics = 1
+        else:
+            withlyrics = 0
+        
+        playlist = backendInterface.genratePlaylist(
+            name,genres,countries,artists,decades,freetext,live,cover,withlyrics 
         )
-        print request.POST
 
     context = {
-        'playlist_id': generatedPlaylistID
+        'playlist_id': playlist.id
     }
 
     return render(request, 'loader.html', context)
