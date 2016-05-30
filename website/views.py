@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from engine import backendInterface
-from engine.objects import Playlist
+from engine.objects import Playlist, Artist, Genre, Country, FilterObject
 
 """
 Homepage
@@ -57,7 +57,6 @@ def player(request, playlist_id, action=None):
     else:
         context = {
             'playlist': p,
-            'description' : p.getDescription(),
             'action': action
         }
 
@@ -70,18 +69,41 @@ Generator
 def generator(request):
     if request.method == 'POST':
         
+        artists = []
+        for artist in request.POST.getlist('artist'):
+            artists.append(FilterObject(tuple(artist.split(':'))))
+            
+        genres = []
+        for genre in request.POST.getlist('genre'):
+            genres.append(FilterObject(tuple(genre.split(':'))))
+            
+        countries = []
+        for country in request.POST.getlist('country'):
+            countries.append(FilterObject(tuple(country.split(':'))))
+            
+        decades = []
+        for decade in request.POST.getlist('decades'):
+            decades.append(FilterObject(tuple(decade.split(':'))))
+              
+        if (request.POST.get('live') == 'on'):
+            live = 1
+        else:
+            live = 0
+        if (request.POST.get('cover') == 'on'):
+            cover = 1
+        else:
+            cover = 0
+        if (request.POST.get('withlyrics') == 'on'):
+            withlyrics = 1
+        else:
+            withlyrics = 0
+        
         playlist = backendInterface.genratePlaylist(
             name=request.POST.get('name'),
-            genres=request.POST.getlist('genre'),
-            countries=request.POST.getlist('country'),
-            decades=request.POST.getlist('decade'),
-            artists=request.POST.getlist('artist'),
+            genres,countries,decades,artists,
             freetext=request.POST.get('text'),
-            live=request.POST.get('live'),
-            cover=request.POST.get('cover'),
-            withlyrics=request.POST.get('withlyrics')
+            live,cover,withlyrics
         )
-        print request.POST
 
     context = {
         'playlist_id': playlist.id

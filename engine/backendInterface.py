@@ -6,7 +6,7 @@ from datetime import datetime
 from engine.objects import Playlist
 
 # Read connection details from properties
-con = mdb.connect('localhost', 'root', 'password', 'musicfilter')
+con = mdb.connect('localhost', 'root', 'B3agl34', 'musicfilter')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
@@ -75,9 +75,9 @@ Get playlist videos by playlist_id
 """
 def getPlaylistVideos(playlist_id):
     
-    cur.execute("""SELECT pv.video_id
-        FROM  playlist_to_video pv
-        WHERE pv.playlist_id = %s
+    cur.execute("""SELECT video_id
+        FROM  playlist_to_video
+        WHERE playlist_id = %s
         """, (playlist_id,))
     videos = cur.fetchall()
     
@@ -98,7 +98,7 @@ def getPlaylistByName(playlist_name):
     
     p = Playlist(playlist[0])
     p.name = playlist_name
-    p.createdOn = playlist[1]
+    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
     p.description = playlist[2]
     p.hits = playlist[3]
     p.video_list = getPlaylistVideos(p.id)
@@ -133,7 +133,7 @@ def getPlaylistById(playlist_id):
     
     p = Playlist(playlist_id)
     p.name = playlist[0]
-    p.createdOn = playlist[1]
+    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
     p.description = playlist[2]
     p.hits = playlist[3]
     p.video_list = getPlaylistVideos(p.id)
@@ -156,7 +156,7 @@ def incrementHitCount(playlist_id):
     cur.execute("""UPDATE playlist
         SET play_count = play_count + 1
         WHERE playlist_id = %s""", (playlist_id,))
-    playlist = con.commit()
+    con.commit()
     
     pass
 
@@ -197,15 +197,7 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
     p = Playlist(id)
     p.name = name;
     p.video_list = videos
-    p.artists = artists
-    p.genres = genres
-    p.countries = countries
-    p.decades = decades
-    p.hits = 0
     p.createdOn = datetime.now()
-    p.is_live = live
-    p.is_cover = cover
-    p.is_with_lyrics = withlyrics
     
     return p
 
@@ -228,23 +220,11 @@ Loads videos using the given filter parameters
 def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
     
     # Prepare user input
-    string_genres = ', '.join(str(x) for x in genres)
-    string_countries = ', '.join(str(x) for x in countries)
-    string_artists = ', '.join(str(x) for x in artists)
-    string_decades = ', '.join(str(x) for x in decades)
+    string_genres = ', '.join(str(x.id) for x in genres)
+    string_countries = ', '.join(str(x.id) for x in countries)
+    string_artists = ', '.join(str(x.id) for x in artists)
+    string_decades = ', '.join(str(x.id) for x in decades)
     string_freetext = '%' + freetext + '%'
-    if (live == 'on'):
-        string_live = 1
-    else:
-        string_live = 0
-    if (cover == 'on'):
-        string_cover = 1
-    else:
-        string_cover = 0
-    if (withlyrics == 'on'):
-        string_withlyrics = 1
-    else:
-        string_withlyrics = 0
         
     select_data = ()
     
@@ -293,7 +273,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
                                                                     artist_genre.genre_id = genre.genre_id AND
                                                                     """
                                                                     
-    select_data = select_data + (string_live, string_cover, string_withlyrics,)
+    select_data = select_data + (live, cover, withlyrics,)
                                                                     
     if (len(genres) > 0):
         select_command += "genre.genre_id IN (%s) AND \n"
@@ -323,7 +303,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
                                             LIMIT 110) random)
     LIMIT 100"""
     
-    select_data = select_data + (string_live, string_cover, string_withlyrics,)
+    select_data = select_data + (live, cover, withlyrics,)
     
     cur.execute(select_command, select_data)
     video_ids = cur.fetchall()
@@ -369,21 +349,8 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         
-    if (live == 'on'):
-        string_live = 1
-    else:
-        string_live = 0
-    if (cover == 'on'):
-        string_cover = 1
-    else:
-        string_cover = 0
-    if (withlyrics == 'on'):
-        string_withlyrics = 1
-    else:
-        string_withlyrics = 0
-        
-    # What to do with description ??
-    insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), "", 0, string_live, string_cover, string_withlyrics, freetext)
+    desc = buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext)
+    insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), desc, 0, live, cover, withlyrics, freetext)
     cur.execute(insert_command, insert_data)
     con.commit()
     
@@ -393,29 +360,29 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     insert_command = ""
     insert_data = ()
     
-    for artist_id in artists:
+    for artist in artists:
         insert_command += """INSERT INTO playlist_artist
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, artist_id,)
+        insert_data = insert_data + (playlist_id, artist.id,)
     
-    for country_id in countries:
+    for country in countries:
         insert_command += """INSERT INTO playlist_country
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, country_id,)
+        insert_data = insert_data + (playlist_id, country.id,)
     
-    for genre_id in genres:
+    for genre in genres:
         insert_command += """INSERT INTO playlist_genre
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, genre_id,)    
+        insert_data = insert_data + (playlist_id, genre.id,)    
     
-    for decade_id in decades:
+    for decade in decades:
         insert_command += """INSERT INTO playlist_decade
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, decade_id,) 
+        insert_data = insert_data + (playlist_id, decade.id,) 
     
     cur.execute(insert_command, insert_data)
     con.commit()
@@ -450,3 +417,54 @@ def getTopHits():
     top_country = 'Portugal'
 
     return top_artist, top_genre, top_decade, top_country
+
+
+def buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext):
+    
+    props = ""
+    artists = ""
+    genres = ""
+    countries = ""
+    decades = ""
+    freetext = ""
+    
+    if live:
+        props += "live, "
+        
+    if cover:
+        props += "cover versions, "
+        
+    if withlyrics:
+        props += "lyrics included, "
+        
+    if props != "":
+        props = props[:-2]
+    
+    for artist in artists:
+        artists += artist.name + ", "
+        
+    if artists != "":
+        artists = "by " + artists
+                    
+    for genre in genres:
+        genres += genre.name + ", "
+        
+    if genres != "":
+        genres = "of type " + genres
+        
+    for decade in decades:
+        decades += decade.name + ", " 
+        
+    if decades != "":
+        decades = "from " + decades
+        
+    for country in countries:
+        countries += country.name + ", "
+    
+    if countries != "":
+        countries = "from " + countries[:-2]
+        
+    if freetext != "":
+        freetext = "that have '%s' in the title, "
+        
+    return 'Listening to {0} videos {1} {2} {3} {4} {5} !'.format(props, freetext, genres, artists, decades, countries)
