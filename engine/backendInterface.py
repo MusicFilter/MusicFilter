@@ -439,11 +439,6 @@ def getTopHits():
 def buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext):
     
     props = ""
-    artists = ""
-    genres = ""
-    countries = ""
-    decades = ""
-    freetext = ""
     
     if live:
         props += "live, "
@@ -469,12 +464,13 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
         string_genres = "of type " + string_genres
         
     if string_decades != "":
-        string_decades = "from " + string_decades
+        string_decades = "from the " + string_decades
     
     if string_countries != "":
         string_countries = "from " + string_countries
         
     if freetext != "":
-        freetext = "that have '%s' in the title, "
+        string_freetext = "that have " + freetext + " in the title, "
         
-    return 'Listening to {0} videos {1} {2} {3} {4} {5} !'.format(props, freetext, genres, artists, decades, countries)
+    return 'Listening to {0} videos {1} {2} {3} {4} {5} !'.format(
+             props, string_freetext, string_genres, string_artists, string_decades, string_countries)
