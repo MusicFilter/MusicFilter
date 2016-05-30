@@ -7,10 +7,7 @@ from engine.objects import Playlist
 
 # Read connection details from properties
 con = mdb.connect('localhost', 'root', 'B3agl34', 'musicfilter')
-
 cur = con.cursor(mdb.cursors.DictCursor)
-
-cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
 """
 Get all countries from DB
@@ -18,7 +15,11 @@ Get all countries from DB
 def getArtists():
     
     # Return all artists from the DB to populate the list
-    return sorted(artist_db, key=lambda x: x.name, reverse=False)
+    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
+
+    cur.execute("""SELECT artist_id, artist_name
+        FROM  artist""")
+    return cur.fetchall()
 
 
 """
@@ -27,7 +28,11 @@ Get all distinct countries from DB
 def getCountries():
     
     # select alphabetically sorted distinct countries from DB...
-    return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
+    #return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
+    
+    cur.execute("""SELECT country_id, country_name
+        FROM  country""")
+    return cur.fetchall()
 
 
 """
@@ -36,7 +41,11 @@ Get all distinct genres from DB
 def getGenres():
     
     # select alphabetically sorted distinct countries from DB...
-    return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
+    #return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
+    
+    cur.execute("""SELECT genre_id, genre_name
+        FROM  genre""")
+    return cur.fetchall()
 
 """
 Get top trending playlists
@@ -220,10 +229,10 @@ Loads videos using the given filter parameters
 def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
     
     # Prepare user input
-    string_genres = ', '.join(str(x.id) for x in genres)
-    string_countries = ', '.join(str(x.id) for x in countries)
-    string_artists = ', '.join(str(x.id) for x in artists)
-    string_decades = ', '.join(str(x.id) for x in decades)
+    string_genres = ', '.join(str(x[0]) for x in genres)
+    string_countries = ', '.join(str(x[0]) for x in countries)
+    string_artists = ', '.join(str(x[0]) for x in artists)
+    string_decades = ', '.join(str(x[0]) for x in decades)
     string_freetext = '%' + freetext + '%'
         
     select_data = ()
@@ -316,8 +325,9 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
        
     for video_id in video_ids:
         update_command += """INSERT INTO playlist_to_video
-           VALUES (%s, %s);
-           """
+            (playlist_id, video_id)
+            VALUES (%s, %s);
+            """
         insert_data = insert_data + (id, video_id,)
     
     cur.execute(update_command, insert_data)
@@ -346,6 +356,7 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     
     # Create one big insert command to minimize I/O
     insert_command = """INSERT INTO playlist
+        (playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         
@@ -354,35 +365,41 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     cur.execute(insert_command, insert_data)
     con.commit()
     
-    cur.execute("SELECT LAST_INSERT_ID()")
-    playlist_id = cur.fetchone();
+    playlist_id = cur.lastrowid
     
     insert_command = ""
     insert_data = ()
     
     for artist in artists:
         insert_command += """INSERT INTO playlist_artist
+            (playlist_id, artist_id)
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, artist.id,)
+        insert_data = insert_data + (playlist_id, artist[0],)
     
     for country in countries:
         insert_command += """INSERT INTO playlist_country
+            (playlist_id, country_id)
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, country.id,)
+        insert_data = insert_data + (playlist_id, country[0],)
     
     for genre in genres:
         insert_command += """INSERT INTO playlist_genre
+            (playlist_id, genre_id)
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, genre.id,)    
+        insert_data = insert_data + (playlist_id, genre[0],)    
     
     for decade in decades:
         insert_command += """INSERT INTO playlist_decade
+            (playlist_id, decade_id)
             VALUES (%s, %s);
             """
-        insert_data = insert_data + (playlist_id, decade.id,) 
+        insert_data = insert_data + (playlist_id, decade[0],) 
+    
+    print insert_command
+    print insert_data
     
     cur.execute(insert_command, insert_data)
     con.commit()
@@ -439,30 +456,23 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
         
     if props != "":
         props = props[:-2]
+        
+    string_genres = ', '.join(str(x[1]) for x in genres)
+    string_countries = ', '.join(str(x[1]) for x in countries)
+    string_artists = ', '.join(str(x[1]) for x in artists)
+    string_decades = ', '.join(str(x[1]) for x in decades)
+        
+    if string_artists != "":
+        string_artists = "by " + string_artists
+        
+    if string_genres != "":
+        string_genres = "of type " + string_genres
+        
+    if string_decades != "":
+        string_decades = "from " + string_decades
     
-    for artist in artists:
-        artists += artist.name + ", "
-        
-    if artists != "":
-        artists = "by " + artists
-                    
-    for genre in genres:
-        genres += genre.name + ", "
-        
-    if genres != "":
-        genres = "of type " + genres
-        
-    for decade in decades:
-        decades += decade.name + ", " 
-        
-    if decades != "":
-        decades = "from " + decades
-        
-    for country in countries:
-        countries += country.name + ", "
-    
-    if countries != "":
-        countries = "from " + countries[:-2]
+    if string_countries != "":
+        string_countries = "from " + string_countries
         
     if freetext != "":
         freetext = "that have '%s' in the title, "

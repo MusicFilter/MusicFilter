@@ -1,26 +1,6 @@
 from datetime import datetime
 from random import shuffle
 
-class FilterObject:
-    """
-    self.id
-    self.name
-    """
-    
-    """
-    Constructor
-    """
-    def __init__(self, id, name):
-        # init fields
-        self.id = id
-        self.name = name
-        
-    """
-    toString
-    """
-    def __str__(self):
-        return 'Object[id={0}, name={1}]'.format(self.id, self.name)
-
 class Artist:
     
     """
@@ -31,51 +11,7 @@ class Artist:
     """
     Constructor
     """
-    def __init__(self, id, name):
-        # init fields
-        self.id = id
-        self.name = name
-        
-    """
-    toString
-    """
-    def __str__(self):
-        return 'Artist[id={0}, name={1}]'.format(self.id, self.name)
-    
-
-class Genre:
-    
-    """
-    self.id
-    self.name
-    """
-    
-    """
-    Constructor
-    """
-    def __init__(self, id, name):
-        # init fields
-        self.id = id
-        self.name = name
-        
-    """
-    toString
-    """
-    def __str__(self):
-        return 'Genre[id={0}, name={1}]'.format(self.id, self.name)
-    
-
-class Country:
-    
-    """
-    self.id
-    self.name
-    """
-    
-    """
-    Constructor
-    """
-    def __init__(self, id, name):
+    def __init__(self, id):
         # init fields
         self.id = id
         self.name = ''
@@ -84,7 +20,7 @@ class Country:
     toString
     """
     def __str__(self):
-        return 'Country[id={0}, name={1}]'.format(self.id, self.name)
+        return 'Artist[id={0}, name={1}]'.format(self.id, self.name)
     
 
 class Playlist:

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from engine import backendInterface
-from engine.objects import Playlist, Artist, Genre, Country, FilterObject
+from engine.objects import Playlist
 
 """
 Homepage
@@ -69,21 +69,24 @@ Generator
 def generator(request):
     if request.method == 'POST':
         
+        name = request.POST.get('name')
+        freetext=request.POST.get('text')
+        
         artists = []
         for artist in request.POST.getlist('artist'):
-            artists.append(FilterObject(tuple(artist.split(':'))))
+            artists.append(tuple(artist.split(':')))
             
         genres = []
         for genre in request.POST.getlist('genre'):
-            genres.append(FilterObject(tuple(genre.split(':'))))
+            genres.append(tuple(genre.split(':')))
             
         countries = []
         for country in request.POST.getlist('country'):
-            countries.append(FilterObject(tuple(country.split(':'))))
-            
+            countries.append(tuple(country.split(':')))
+        
         decades = []
-        for decade in request.POST.getlist('decades'):
-            decades.append(FilterObject(tuple(decade.split(':'))))
+        for decade in request.POST.getlist('decade'):
+            decades.append(tuple(decade.split(':')))
               
         if (request.POST.get('live') == 'on'):
             live = 1
@@ -99,10 +102,7 @@ def generator(request):
             withlyrics = 0
         
         playlist = backendInterface.genratePlaylist(
-            name=request.POST.get('name'),
-            genres,countries,decades,artists,
-            freetext=request.POST.get('text'),
-            live,cover,withlyrics
+            name,genres,countries,artists,decades,freetext,live,cover,withlyrics 
         )
 
     context = {
