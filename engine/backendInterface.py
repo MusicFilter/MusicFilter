@@ -68,6 +68,43 @@ def getNewest(count=4):
         p.getElapsed()
     return sorted(dummy_db, key=lambda x: x.createdOn, reverse=True)[0:count]
 
+"""
+Get playlist videos by playlist_id
+:returns: [videos] list of video ids connected to playlist
+:param: playlist_id [int] playlist ID
+"""
+def getPlaylistVideos(playlist_id):
+    
+    cur.execute("""SELECT pv.video_id
+        FROM  playlist_to_video pv
+        WHERE pv.playlist_id = %s
+        """, (playlist_id,))
+    videos = cur.fetchall()
+    
+    return list(videos)
+
+"""
+Get playlist object by its playlist_name filed
+:returns: [playlist] object or -1 if nothing was found
+:param: playlist_name [int] playlist Name
+"""
+def getPlaylistByName(playlist_name):
+
+    cur.execute("""SELECT playlist_id, creation_date, description, play_count 
+        FROM playlist 
+        WHERE playlist_name = %s
+        """, (playlist_name,))
+    playlist = cur.fetchone()
+    
+    p = Playlist(playlist[0])
+    p.name = playlist_name
+    p.createdOn = playlist[1]
+    p.description = playlist[2]
+    p.hits = playlist[3]
+    p.video_list = getPlaylistVideos(p.id)
+    
+    return p
+    
 
 """
 Get playlist object by its playlist_id filed
@@ -81,11 +118,27 @@ def getPlaylistById(playlist_id):
     # return the playlist object
 
     # dummy DB
-    for p in dummy_db:
-        if p.id == int(playlist_id):
-            return p
+    #for p in dummy_db:
+    #    if p.id == int(playlist_id):
+    #        return p
 
-    return -1
+    #return -1
+
+
+    cur.execute("""SELECT playlist_name, creation_date, description, play_count 
+        FROM playlist 
+        WHERE playlist_id = %s
+        """, (playlist_id,))
+    playlist = cur.fetchone()
+    
+    p = Playlist(playlist_id)
+    p.name = playlist[0]
+    p.createdOn = playlist[1]
+    p.description = playlist[2]
+    p.hits = playlist[3]
+    p.video_list = getPlaylistVideos(p.id)
+    
+    return p
 
 
 """
@@ -97,8 +150,15 @@ def incrementHitCount(playlist_id):
     # commit to DB playlist.id + 1
 
     # dummy DB
-    p = getPlaylistById(playlist_id)
-    p.hits += 1
+    #p = getPlaylistById(playlist_id)
+    #p.hits += 1
+    
+    cur.execute("""UPDATE playlist
+        SET play_count = play_count + 1
+        WHERE playlist_id = %s""", (playlist_id,))
+    playlist = con.commit()
+    
+    pass
 
 
 """
@@ -118,7 +178,6 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
 
     # the id should come from DB
     
-    # dummyDB
     print 'generating a playlist from the following parameters:\n' \
           'Genres: {0}\n' \
           'Countries: {1}\n' \
@@ -173,6 +232,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     string_countries = ', '.join(str(x) for x in countries)
     string_artists = ', '.join(str(x) for x in artists)
     string_decades = ', '.join(str(x) for x in decades)
+    string_freetext = '%' + freetext + '%'
     if (live == 'on'):
         string_live = 1
     else:
@@ -218,8 +278,8 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
         select_data = select_data + (string_decades,)
         
     if (len(freetext) > 0):
-        select_command += "(video.title LIKE '%%s%' OR video.description LIKE '%%s%') AND \n"
-        select_data = select_data + (freetext, freetext,)
+        select_command += "(video.title LIKE %s OR video.description LIKE %s) AND \n"
+        select_data = select_data + (string_freetext, string_freetext,)
 
     select_command += """          
                     video.is_live = %s AND
@@ -252,8 +312,8 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
         select_data = select_data + (string_decades,)
         
     if (len(freetext) > 0):
-        select_command += "(video.title LIKE '%%s%' OR video.description LIKE '%%s%') AND \n"
-        select_data = select_data + (freetext, freetext,)
+        select_command += "(video.title LIKE %s OR video.description LIKE %s) AND \n"
+        select_data = select_data + (string_freetext, string_freetext,)
 
     select_command += """   
                                                                     video.is_live = %s AND
@@ -283,7 +343,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     cur.execute(update_command, insert_data)
     con.commit()
     
-    return video_ids 
+    return list(video_ids) 
 
 """
 Creates a new playlist in the DB

@@ -130,6 +130,7 @@ class Playlist:
         self.decades = []
         self.countries = []
         self.genres = []
+        self.description = ''
         self.is_live = False
         self.is_cover = False
         self.is_with_lyrics = False

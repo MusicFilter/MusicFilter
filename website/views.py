@@ -45,6 +45,7 @@ def player(request, playlist_id, action=None):
     # update hit count
     else:
         backendInterface.incrementHitCount(playlist_id)
+        p.hits += 1
 
     # playlist not found
     if p == -1:
