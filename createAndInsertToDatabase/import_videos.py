@@ -78,9 +78,6 @@ PROP_PUBLICATION_DATE = 'P577'
 PROP_FREEBASE_ID = 'P646'
 PROP_LOCATION_OF_FORMATION = 'P740'
 
-ARTIST_TYPE_BAND = 'B'
-ARTIST_TYPE_SOLO = 'S'
-
 VIDEOS_PER_ARTIST = 8
 
 WIKIDATA_ENTITIES = {}
@@ -106,7 +103,9 @@ def memoized_wikidata_entity(wikidata_id):
     return WIKIDATA_ENTITIES[wikidata_id]
 
 def wikidata_label(entity):
-    return entity['labels']['en']['value']
+    if entity['labels']:
+        return entity['labels']['en']['value']
+    return None
 
 def wikidata_string_values(entity, property):
     return [value['mainsnak']['datavalue']['value'] for value in entity['claims'].get(property, [])]
@@ -278,7 +277,9 @@ def build_database():
     print "DONE"
 
     for artist_id in artist_ids:
+        print "Getting details for artist %d..." % artist_id,
         artist_details = get_artist_details(artist_id)
+        print "DONE"
         print "Inserting artist %d..." % artist_id,
         insertArtist(artist_details)
         print "DONE"

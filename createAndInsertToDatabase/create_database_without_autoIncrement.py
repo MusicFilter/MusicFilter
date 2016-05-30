@@ -41,7 +41,7 @@ cur.execute(create_video_table)
 
 create_artist_table = """CREATE TABLE ARTIST(
 						artist_id INT PRIMARY KEY,
-						artist_name CHAR(30),
+						artist_name CHAR(255),
 						dominant_decade INT,
 						country_id INT,
 						is_band BOOLEAN,
@@ -92,7 +92,7 @@ cur.execute(create_playlistToVideo_table)
 
 create_country_table = """CREATE TABLE COUNTRY(
 						country_id INT PRIMARY KEY,
-						country_name CHAR(30))"""
+						country_name CHAR(60))"""
 
 cur.execute(create_country_table)
 
