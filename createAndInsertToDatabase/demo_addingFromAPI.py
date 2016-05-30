@@ -7,6 +7,8 @@ con = mdb.connect('localhost', 'root', 'password', 'musicfilter', use_unicode=Tr
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
+cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
+
 cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
 def insertVideo(VideoDict):

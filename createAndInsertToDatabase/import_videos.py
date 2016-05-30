@@ -4,6 +4,7 @@ import time
 from collections import Counter
 
 from apiclient.discovery import build
+from apiclient.errors import HttpError
 
 from demo_addingFromAPI import *
 
@@ -11,10 +12,8 @@ DEVELOPER_KEY = "AIzaSyCUyZXok3rrT88dpo2FEPY7hripKOmdRVQ"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
-YOUTUBE_SEARCH_COUNT = 0
-YOUTUBE_SEARCH_LIMIT = 10000
-YOUTUBE_QUOTA_INTERVAL = 24 * 61 * 60
-YOUTUBE_QUOTA_START = None
+QUOTA_EXCEEDED_ERROR = 403
+QUOTA_EXCEEDED_WAIT = 600
 
 WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
@@ -123,29 +122,24 @@ def wikidata_entity_string_to_id(entity_string):
     return int(entity_string[len("Q"):])
 
 def youtube_search_by_topic(topic_id):
-    global YOUTUBE_SEARCH_COUNT, YOUTUBE_QUOTA_START
-
-    if YOUTUBE_SEARCH_COUNT == YOUTUBE_SEARCH_LIMIT:
-        sleep_duration = YOUTUBE_QUOTA_INTERVAL - (time.time() - YOUTUBE_QUOTA_START)
-        print "%s: Waiting %.2f hours for YouTube quota to reset" % (time.ctime(), sleep_duration / 3600)
-        print
-        time.sleep(sleep_duration)
-        YOUTUBE_SEARCH_COUNT = 0
-
-    if not YOUTUBE_SEARCH_COUNT:
-        YOUTUBE_QUOTA_START = time.time()
-
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
-    search_list_response = youtube.search().list(part="snippet",
-                                                 maxResults=VIDEOS_PER_ARTIST,
-                                                 order="viewCount",
-                                                 topicId=topic_id,
-                                                 type="video",
-                                                 videoCategoryId=10,
-                                                 videoEmbeddable="true"
-                                                 ).execute()
 
-    YOUTUBE_SEARCH_COUNT += 1
+    search_list_response = None
+    while search_list_response is None:
+        try:
+            search_list_response = youtube.search().list(part="snippet",
+                                                         maxResults=VIDEOS_PER_ARTIST,
+                                                         order="viewCount",
+                                                         topicId=topic_id,
+                                                         type="video",
+                                                         videoCategoryId=10,
+                                                         videoEmbeddable="true"
+                                                         ).execute()
+        except HttpError as e:
+            if e.resp.status == QUOTA_EXCEEDED_ERROR:
+                time.sleep(QUOTA_EXCEEDED_WAIT)
+            else:
+                raise
 
     return search_list_response.get("items", [])
 

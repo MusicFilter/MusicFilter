@@ -10,6 +10,8 @@ con = mdb.connect('localhost', 'root', 'password', 'musicfilter', use_unicode=Tr
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
+cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
+
 cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
 cur.execute("DROP TABLE IF EXISTS VIDEO")
@@ -24,6 +26,7 @@ cur.execute("DROP TABLE IF EXISTS PLAYLIST_ARTIST")
 cur.execute("DROP TABLE IF EXISTS PLAYLIST_GENRE")
 cur.execute("DROP TABLE IF EXISTS PLAYLIST_COUNTRY")
 
+cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
 create_video_table = """CREATE TABLE VIDEO(
 						video_id CHAR(11) PRIMARY KEY,
