@@ -69,7 +69,7 @@ Generator
 def generator(request):
     if request.method == 'POST':
         
-        generatedPlaylistID = backendInterface.genratePlaylist(
+        playlist = backendInterface.genratePlaylist(
             name=request.POST.get('name'),
             genres=request.POST.getlist('genre'),
             countries=request.POST.getlist('country'),
@@ -83,7 +83,7 @@ def generator(request):
         print request.POST
 
     context = {
-        'playlist_id': generatedPlaylistID
+        'playlist_id': playlist.id
     }
 
     return render(request, 'loader.html', context)

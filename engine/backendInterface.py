@@ -1,7 +1,8 @@
 from dummyDB import dummy_db, getRandomPlaylist
 from engine.dummyDB import artist_db
 import MySQLdb as mdb
-import time    
+import time
+from datetime import datetime
 from engine.objects import Playlist
 
 # Read connection details from properties
@@ -116,7 +117,6 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
     # run as a seperate process to allow preloader
 
     # the id should come from DB
-    #id = getRandomPlaylist().id
     
     # dummyDB
     print 'generating a playlist from the following parameters:\n' \
@@ -134,8 +134,21 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
     id = createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics)          
     # Load videos by filter and set them in new playlist
     videos = loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics)
+    # Create new playlist object
+    p = Playlist(id)
+    p.name = name;
+    p.video_list = videos
+    p.artists = artists
+    p.genres = genres
+    p.countries = countries
+    p.decades = decades
+    p.hits = 0
+    p.createdOn = datetime.now()
+    p.is_live = live
+    p.is_cover = cover
+    p.is_with_lyrics = withlyrics
     
-    return id
+    return p
 
 def reloadVideos(p):
     
@@ -291,12 +304,9 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     # Then connects the playlist to country table
     # Then connects the playlist to decades
     
-    # This id should be auto increment!
-    playlist_id = 1
-    
     # Create one big insert command to minimize I/O
     insert_command = """INSERT INTO playlist
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         
     if (live == 'on'):
@@ -313,7 +323,15 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
         string_withlyrics = 0
         
     # What to do with description ??
-    insert_data = (playlist_id, name, time.strftime('%Y-%m-%d %H:%M:%S'), "", 0, string_live, string_cover, string_withlyrics, freetext)
+    insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), "", 0, string_live, string_cover, string_withlyrics, freetext)
+    cur.execute(insert_command, insert_data)
+    con.commit()
+    
+    cur.execute("SELECT LAST_INSERT_ID()")
+    playlist_id = cur.fetchone();
+    
+    insert_command = ""
+    insert_data = ()
     
     for artist_id in artists:
         insert_command += """INSERT INTO playlist_artist
