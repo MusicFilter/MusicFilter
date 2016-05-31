@@ -22,54 +22,181 @@ cur = con.cursor(mdb.cursors.DictCursor)
 
 cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
+
+###first group by count(artist_id), then select max
+##getMostPopularArtist =\
+##"""
+##SELECT artist_name
+##FROM Artist
+##WHERE Artist_id in 
+##        (SELECT artist_id
+##        FROM (SELECT artist_id, count(playlist_id)
+##             FROM PLAYLIST_ARTIST
+##             GROUP BY artist_id
+##             HAVING count(playlist_id) >= 
+##			(SELECT max(popularity)
+##			FROM
+##			    (SELECT artist_id, count(playlist_id) as popularity
+##			    FROM PLAYLIST_ARTIST
+##			    GROUP BY artist_id
+##			    ) as countPlaylistsPerArtist
+##			)
+##	    ) as maxIDsAndCounts
+##	)
+##"""
+
 getMostPopularArtist =\
 """
-SELECT artist_name 
+SELECT artist_name
 FROM Artist
-WHERE artist_id =  (SELECT artist_id D
-                    FROM (SELECT artist_id, count(playlist_id) C
-                          FROM PLAYLIST_ARTIST
-                          GROUP BY artist_id)
-                          HAVING count(playlist_id) >= (SELECT max(popularity) B
-                                                        FROM (SELECT artist_id, count(playlist_id) as popularity A
-                                                              FROM PLAYLIST_ARTIST
-                                                              GROUP BY artist_id
-                                                              ) A
-                                                        ) B
-                          ) C
-                    ) D
+WHERE Artist_id in
+         (SELECT artist_id
+             FROM PLAYLIST_ARTIST
+             GROUP BY artist_id
+             HAVING count(playlist_id) >= 
+			(SELECT max(popularity)
+			FROM
+			    (SELECT count(playlist_id) as popularity
+			    FROM PLAYLIST_ARTIST
+			    GROUP BY artist_id
+			    ) as countPlaylistsPerArtist
+			)
+	)
+"""
 
-""" 
+##getMostPopularGenre =\
+##"""
+##SELECT genre_name
+##FROM genre
+##WHERE genre_id in
+##         (SELECT genre_id
+##             FROM PLAYLIST_GENRE
+##             GROUP BY genre_id
+##             HAVING count(playlist_id) >= 
+##			(SELECT max(popularity)
+##			FROM
+##			    (SELECT count(playlist_id) as popularity
+##			    FROM PLAYLIST_GENRE
+##			    GROUP BY genre_id
+##			    ) as countPlaylistsPerGenre
+##			)
+##	)
+##"""
+
+##getMostPopularCountry =\
+##"""
+##SELECT country_name
+##FROM country
+##WHERE country_id in
+##         (SELECT country_id
+##             FROM PLAYLIST_COUNTRY
+##             GROUP BY country_id
+##             HAVING count(playlist_id) >= 
+##			(SELECT max(popularity)
+##			FROM
+##			    (SELECT count(playlist_id) as popularity
+##			    FROM PLAYLIST_COUNTRY
+##			    GROUP BY country_id
+##			    ) as countPlaylistsPerCountry
+##			)
+##	)
+##"""
+
+
+
+#ron TODO: continue decade, not this version but the version in the bottom of the file
+
+##getMostPopularDecade =\
+##"""
+##SELECT artist.dominant_decade
+##FROM artist
+##WHERE artist.dominant_decade in 
+##        (SELECT decade
+##             FROM PLAYLIST_DECADE
+##             GROUP BY decade
+##             HAVING count(playlist_id) >= 
+##			(SELECT max(popularity)
+##			FROM
+##			    (SELECT count(playlist_id) as popularity
+##			    FROM PLAYLIST_DECADE
+##			    GROUP BY decade
+##			    ) as countPlaylistsPerDecade
+##			)
+##	)
+##"""
+
+
+
+
+##smallQuery =\
+##"""
+##SELECT max(popularity)
+##            FROM
+##                (SELECT artist_id, count(playlist_id) as popularity
+##                FROM PLAYLIST_ARTIST
+##                GROUP BY artist_id
+##                ) as countPlaylistsPerArtist
+##
+##"""
+##
+##
+##tryoutQuery =\
+##"""
+##    SELECT chosenName
+##    FROM
+##        (SELECT artist.artist_name as chosenName
+##        FROM artist
+##        WHERE artist.artist_name = 'john'
+##        ) as johhnyBoy
+##"""
+##
+##moreComplex =\
+##"""
+##            SELECT artist_id, count(playlist_id)
+##             FROM PLAYLIST_ARTIST
+##             GROUP BY artist_id
+##             HAVING count(playlist_id) >= 
+##			(SELECT max(popularity)
+##			FROM
+##			    (SELECT artist_id, count(playlist_id) as popularity
+##			    FROM PLAYLIST_ARTIST
+##			    GROUP BY artist_id
+##			    ) as countPlaylistsPerArtist
+##			)
+##"""
+
+
+#cur.execute(moreComplex)  #works
+#cur.execute(tryoutQuery)  #works
 
 cur.execute(getMostPopularArtist)
-
 result = cur.fetchall()
-
 for row in result:
-  print row[0]
+  print row['artist_name']
+
+
+##cur.execute(getMostPopularGenre)
+##result = cur.fetchall()
+##for row in result:
+##  print row['genre_name']
+##
+##  
+##cur.execute(getMostPopularDecade)
+##result = cur.fetchall()
+##for row in result:
+##  print row['dominant_decade']
+##
+##  
+##cur.execute(getMostPopularCountry)
+##result = cur.fetchall()
+##for row in result:
+##  print row['country_name']
 
 con.commit()
 
-##getMostPopularGenre =
-##"""
-##SELECT max(popularity)
-##FROM
-##    (SELECT count(playlist_id) as popularity
-##    FROM
-##        PLAYLIST_GENRE
-##    GROUP BY
-##        genre_id)"""
-##
-##getMostPopularCountry =
-##"""
-##SELECT max(popularity)
-##FROM
-##    (SELECT count(playlist_id) as popularity
-##    FROM
-##        PLAYLIST_COUNTRY
-##    GROUP BY
-##        country_id)"""
-##                        
+
+
+                  
 ###first, we need to count for each decade, how many
 ###appearances it has in a playlist.
 ###Then we need to sum it for all playlists.
