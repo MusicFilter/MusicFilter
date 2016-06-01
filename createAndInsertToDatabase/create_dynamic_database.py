@@ -20,6 +20,7 @@ cur.execute("DROP TABLE IF EXISTS PLAYLIST_TO_VIDEO")
 cur.execute("DROP TABLE IF EXISTS PLAYLIST_ARTIST")
 cur.execute("DROP TABLE IF EXISTS PLAYLIST_GENRE")
 cur.execute("DROP TABLE IF EXISTS PLAYLIST_COUNTRY")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_DECADE")
 
 cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
@@ -45,7 +46,8 @@ create_playlistToVideo_table = """CREATE TABLE PLAYLIST_TO_VIDEO(
 							ON DELETE CASCADE,
 						FOREIGN KEY (playlist_id)
 							REFERENCES  PLAYLIST(playlist_id)
-							ON DELETE CASCADE)"""
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,video_id))"""
 
 cur.execute(create_playlistToVideo_table)
 
@@ -54,7 +56,8 @@ create_playlistArtist_table = """CREATE TABLE PLAYLIST_ARTIST(
 						artist_id INT,
 						FOREIGN KEY (artist_id)
 							REFERENCES  ARTIST(artist_id)
-							ON DELETE CASCADE)"""
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,artist_id))"""
 
 cur.execute(create_playlistArtist_table)
 
@@ -63,7 +66,8 @@ create_playlistGenre_table = """CREATE TABLE PLAYLIST_GENRE(
 						genre_id INT,
 						FOREIGN KEY (genre_id)
 							REFERENCES  GENRE(genre_id)
-							ON DELETE CASCADE)"""
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,genre_id))"""
 
 cur.execute(create_playlistGenre_table)
 
@@ -72,13 +76,15 @@ create_playlistCountry_table = """CREATE TABLE PLAYLIST_COUNTRY(
 						country_id INT,
 						FOREIGN KEY (country_id)
 							REFERENCES  COUNTRY(country_id)
-							ON DELETE CASCADE)"""
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,country_id))"""
 
 cur.execute(create_playlistCountry_table)
 
 create_playlistDecade_table = """CREATE TABLE PLAYLIST_DECADE(
 						playlist_id INT,
-						decade INT)"""
+						decade INT,
+						UNIQUE (playlist_id,decade))"""
 
 cur.execute(create_playlistDecade_table)
 
