@@ -6,7 +6,7 @@ from password import *
 from test.test_support import temp_cwd
 
 # Read connection details from properties
-con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter')
+con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', charset='utf8', use_unicode=True)
 cur = con.cursor(mdb.cursors.DictCursor)
 
 """
