@@ -1,28 +1,6 @@
 from datetime import datetime
 from random import shuffle
 
-class Artist:
-    
-    """
-    self.id
-    self.name
-    """
-    
-    """
-    Constructor
-    """
-    def __init__(self, id):
-        # init fields
-        self.id = id
-        self.name = ''
-        
-    """
-    toString
-    """
-    def __str__(self):
-        return 'Artist[id={0}, name={1}]'.format(self.id, self.name)
-    
-
 class Playlist:
 
     """

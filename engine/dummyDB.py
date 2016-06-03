@@ -1,6 +1,5 @@
 from datetime import datetime
 from objects import Playlist
-from objects import Artist
 import random
 
 p1 = Playlist(1)
@@ -65,6 +64,7 @@ p10.video_list = ['vx2u5uUu3DE', '9BMwcO6_hyA']
 
 dummy_db = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10]
 
+"""
 a1 = Artist(1)
 a1.name = 'The Beatles'
 
@@ -87,6 +87,6 @@ a7 = Artist(7)
 a7.name = 'The Who'
 
 artist_db = [a1, a2, a3, a4, a5, a6, a7]
-
+"""
 def getRandomPlaylist():
     return random.choice(dummy_db)

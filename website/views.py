@@ -29,32 +29,35 @@ Player
 """
 def player(request, playlist_id, action=None):
 
-    # 'playlist not found'
-    playlist404 = Playlist(-1)
-    playlist404.name = 'Playlist Not Found'
-    playlist404.video_list = []
-
     p = backendInterface.getPlaylistById(playlist_id)
-
-    if action == 'reshuffle':
-        p.reshuffle()
-        
-    elif action == 'refresh':
-        backendInterface.reloadVideos(p)
-
-    # update hit count
-    else:
-        backendInterface.incrementHitCount(playlist_id)
-        p.hits += 1
 
     # playlist not found
     if p == -1:
+        
+        # 'playlist not found'
+        playlist404 = Playlist(-1)
+        playlist404.name = 'Playlist Not Found'
+        playlist404.description = 'Oops, we\'re sorry, but we couldn\'t find the playlist you were looking for...'
+        playlist404.video_list = []
+    
         context = {
             'playlist': playlist404
         }
 
     # valid playlist
     else:
+            
+        if action == 'reshuffle':
+            p.reshuffle()
+            
+        elif action == 'refresh':
+            backendInterface.reloadVideos(p)
+    
+        # update hit count
+        else:
+            backendInterface.incrementHitCount(playlist_id)
+            p.hits += 1
+
         context = {
             'playlist': p,
             'action': action
