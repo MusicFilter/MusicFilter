@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import MySQLdb as mdb
+from password import *
 
-con = mdb.connect('localhost', 'root', 'password', 'musicfilter', use_unicode=True, charset='utf8')
+con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', use_unicode=True, charset='utf8')
 
 cur = con.cursor(mdb.cursors.DictCursor)
 
@@ -48,6 +49,34 @@ def insertArtistGenre(ArtistGenreDict):
     cur.execute(
         """INSERT INTO artist_genre (artist_id, genre_id)
             VALUES (%s, %s) ON DUPLICATE KEY UPDATE artist_id=artist_id, genre_id=genre_id;""",(ArtistGenreDict['artist_id'], ArtistGenreDict['genre_id'])
+        )
+    con.commit()
+
+def insertPlaylistArtist(PlaylistArtistDict):
+    cur.execute(
+        """INSERT INTO playlist_artist (playlist_id, artist_id)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, artist_id=artist_id;""",(PlaylistArtistDict['playlist_id'], PlaylistArtistDict['artist_id'])
+        )
+    con.commit()
+
+def insertPlaylistGenre(PlaylistGenreDict):
+    cur.execute(
+        """INSERT INTO playlist_genre (playlist_id, genre_id)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, genre_id=genre_id;""",(PlaylistGenreDict['playlist_id'], PlaylistGenreDict['genre_id'])
+        )
+    con.commit()
+
+def insertPlaylistCountry(PlaylistCountryDict):
+    cur.execute(
+        """INSERT INTO playlist_country (playlist_id, country_id)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, country_id=country_id;""",(PlaylistCountryDict['playlist_id'], PlaylistCountryDict['country_id'])
+        )
+    con.commit()
+
+def insertPlaylistDecade(PlaylistDecadeDict):
+    cur.execute(
+        """INSERT INTO playlist_decade (playlist_id, decade)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, decade=decade;""",(PlaylistDecadeDict['playlist_id'], PlaylistDecadeDict['decade'])
         )
     con.commit()
 

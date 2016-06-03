@@ -2,6 +2,7 @@ import json
 import requests
 import time
 from collections import Counter
+from requests.exceptions import ConnectionError
 
 from apiclient.discovery import build
 from apiclient.errors import HttpError
@@ -15,11 +16,12 @@ YOUTUBE_API_VERSION = "v3"
 QUOTA_EXCEEDED_ERROR = 403
 QUOTA_EXCEEDED_WAIT = 600
 
+CONNECTION_ERROR_WAIT = 60
+
 WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
     PREFIX wikibase: <http://wikiba.se/ontology#>
-
 """
 
 # P31: instance of
@@ -102,18 +104,26 @@ def memoized_wikidata_entity(wikidata_id):
     return WIKIDATA_ENTITIES[wikidata_id]
 
 def wikidata_label(entity):
-    if entity['labels']:
-        return entity['labels']['en']['value']
-    return None
+    return entity.get('labels', {}).get('en', {}).get('value')
+
+def wikidata_values(entity, property, inner_key=None):
+    values = []
+    for claim in entity.get('claims', {}).get(property, []):
+        if claim['mainsnak']['snaktype'] == 'value':
+            value = claim['mainsnak']['datavalue']['value']
+            if inner_key is not None:
+                value = value[inner_key]
+            values.append(value)
+    return values
 
 def wikidata_string_values(entity, property):
-    return [value['mainsnak']['datavalue']['value'] for value in entity['claims'].get(property, [])]
+    return wikidata_values(entity, property)
 
 def wikidata_item_values(entity, property):
-    return [value['mainsnak']['datavalue']['value']['numeric-id'] for value in entity['claims'].get(property, [])]
+    return wikidata_values(entity, property, 'numeric-id')
 
 def wikidata_time_values(entity, property):
-    return [value['mainsnak']['datavalue']['value']['time'] for value in entity['claims'].get(property, [])]
+    return wikidata_values(entity, property, 'time')
 
 def wikidata_entity_url_to_id(entity_url):
     return int(entity_url[len("http://www.wikidata.org/entity/Q"):])
@@ -144,12 +154,18 @@ def youtube_search_by_topic(topic_id):
     return search_list_response.get("items", [])
 
 def artist_videos(artist):
+    videos = []
+
     artist_wikidata_id = wikidata_entity_string_to_id(artist['id'])
-    artist_freebase_id = wikidata_string_values(artist, PROP_FREEBASE_ID)[0]
+
+    artist_freebase_ids = wikidata_string_values(artist, PROP_FREEBASE_ID)
+    if not artist_freebase_ids:
+        return videos
+
+    artist_freebase_id = artist_freebase_ids[0]
 
     search_results = youtube_search_by_topic(artist_freebase_id)
 
-    videos = []
     for search_result in search_results:
         video_details = {}
         video_details['video_id'] = search_result['id']['videoId']
@@ -226,8 +242,8 @@ def artist_decade(artist):
     for item in response['results']['bindings']:
         wikidata_id = wikidata_entity_url_to_id(item['item']['value'])
         entity = wikidata_entity(wikidata_id)
-        publication_dates = wikidata_time_values(entity, PROP_PUBLICATION_DATE)
-        years.extend([int(publication_date[1:5]) for publication_date in publication_dates])
+        publication_date_years = [int(pub_date[1:5]) for pub_date in wikidata_time_values(entity, PROP_PUBLICATION_DATE)]
+        years.extend([year for year in publication_date_years if year >= 1940])
 
     if not years:
         return None
@@ -265,14 +281,25 @@ def select_artists():
 
     return artists
 
-def build_database():
+def build_database(only_new_artists=True):
     print "Selecting artists...",
     artist_ids = select_artists()
     print "DONE"
+    print
+
+    if only_new_artists:
+        cur.execute("SELECT artist_id FROM artist")
+        artist_ids_from_db = [artist['artist_id'] for artist in cur.fetchall()]
+        artist_ids = list(set(artist_ids) - set(artist_ids_from_db))
 
     for artist_id in artist_ids:
         print "Getting details for artist %d..." % artist_id,
-        artist_details = get_artist_details(artist_id)
+        artist_details = None
+        while artist_details is None:
+            try:
+                artist_details = get_artist_details(artist_id)
+            except ConnectionError as e:
+                time.sleep(CONNECTION_ERROR_WAIT)
         print "DONE"
         print "Inserting artist %d..." % artist_id,
         insertArtist(artist_details)
