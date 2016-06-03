@@ -70,3 +70,4 @@ create_country_table = """CREATE TABLE COUNTRY(
 cur.execute(create_country_table)
 
 con.close()
+>>>>>>> refs/remotes/origin/master

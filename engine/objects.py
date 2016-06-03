@@ -1,28 +1,6 @@
 from datetime import datetime
 from random import shuffle
 
-class Artist:
-    
-    """
-    self.id
-    self.name
-    """
-    
-    """
-    Constructor
-    """
-    def __init__(self, id):
-        # init fields
-        self.id = id
-        self.name = ''
-        
-    """
-    toString
-    """
-    def __str__(self):
-        return 'Artist[id={0}, name={1}]'.format(self.id, self.name)
-    
-
 class Playlist:
 
     """
@@ -38,14 +16,14 @@ class Playlist:
     """
     Constructor
     """
-    def __init__(self, id):
+    def __init__(self, id, name, date, desc, hits):
         # init fields
         self.id = id
-        self.hits = 0
-        self.createdOn = datetime(2000, 1, 1)
+        self.hits = hits
+        self.createdOn = date
         self.video_list = []
-        self.name = ''
-        self.description = ''
+        self.name = name
+        self.description = desc
         self.elapsed = 0
 
     """

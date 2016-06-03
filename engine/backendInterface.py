@@ -1,12 +1,12 @@
-from dummyDB import dummy_db, getRandomPlaylist
-from engine.dummyDB import artist_db
 import MySQLdb as mdb
 import time
 from datetime import datetime
 from engine.objects import Playlist
+from password import *
+from test.test_support import temp_cwd
 
 # Read connection details from properties
-con = mdb.connect('localhost', 'root', 'B3agl34', 'musicfilter')
+con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', charset='utf8', use_unicode=True)
 cur = con.cursor(mdb.cursors.DictCursor)
 
 """
@@ -17,7 +17,7 @@ def getArtists():
     # Return all artists from the DB to populate the list
     #return sorted(artist_db, key=lambda x: x.name, reverse=False)
 
-    cur.execute("""SELECT artist_id, artist_name
+    cur.execute("""SELECT artist_id id, artist_name name
         FROM  artist""")
     return cur.fetchall()
 
@@ -30,7 +30,7 @@ def getCountries():
     # select alphabetically sorted distinct countries from DB...
     #return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
     
-    cur.execute("""SELECT country_id, country_name
+    cur.execute("""SELECT country_id id, country_name name
         FROM  country""")
     return cur.fetchall()
 
@@ -43,7 +43,7 @@ def getGenres():
     # select alphabetically sorted distinct countries from DB...
     #return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
     
-    cur.execute("""SELECT genre_id, genre_name
+    cur.execute("""SELECT genre_id id, genre_name name
         FROM  genre""")
     return cur.fetchall()
 
@@ -58,8 +58,22 @@ def getTrending(count=4):
     # call to DB should return a list of length 'count'
     # containing [playlist] object that have maximal hits, sorted descending
 
+    cur.execute("""SELECT playlist_id, playlist_name, creation_date, description, play_count  
+        FROM  playlist
+        ORDER BY play_count DESC
+        LIMIT %s""", (count,))
+    res = cur.fetchall()
+    trending = []
+    
+    for p in res:
+        trending.append(Playlist(p['playlist_id'],p['playlist_name'],
+                p['creation_date'],p['description'],p['play_count']))
+        
+    
+    return trending
+
     # dummy db
-    return sorted(dummy_db, key=lambda x: x.hits, reverse=True)[0:count]
+    #return sorted(dummy_db, key=lambda x: x.hits, reverse=True)[0:count]
 
 """
 Get newest playlists
@@ -72,10 +86,27 @@ def getNewest(count=4):
     # call to DB should return a list of length 'count'
     # containing [playlist] object that have their createdOn field closest to now
 
+    cur.execute("""SELECT playlist_id, playlist_name, creation_date, description, play_count  
+        FROM  playlist
+        ORDER BY creation_date DESC
+        LIMIT %s""", (count,))
+    res = cur.fetchall()
+    newest = []
+    
+    for item in res:
+        playlist = Playlist(item['playlist_id'],item['playlist_name'],
+                item['creation_date'],item['description'],item['play_count'])
+        playlist.getElapsed()
+        newest.append(playlist)
+    
+    return newest
+
     # dummy db
-    for p in dummy_db:
-        p.getElapsed()
-    return sorted(dummy_db, key=lambda x: x.createdOn, reverse=True)[0:count]
+    #for p in dummy_db:
+    #    p.getElapsed()
+    #return sorted(dummy_db, key=lambda x: x.createdOn, reverse=True)[0:count]
+
+
 
 """
 Get playlist videos by playlist_id
@@ -89,8 +120,7 @@ def getPlaylistVideos(playlist_id):
         WHERE playlist_id = %s
         """, (playlist_id,))
     videos = cur.fetchall()
-    
-    return list(videos)
+    return [x['video_id'] for x in videos]
 
 """
 Get playlist object by its playlist_name filed
@@ -105,11 +135,11 @@ def getPlaylistByName(playlist_name):
         """, (playlist_name,))
     playlist = cur.fetchone()
     
-    p = Playlist(playlist[0])
-    p.name = playlist_name
-    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
-    p.description = playlist[2]
-    p.hits = playlist[3]
+    if playlist is None:
+        return -1
+    
+    p = Playlist(playlist['playlist_id'],playlist_name,playlist['creation_date'],
+                 playlist['description'],playlist['play_count'])
     p.video_list = getPlaylistVideos(p.id)
     
     return p
@@ -140,11 +170,11 @@ def getPlaylistById(playlist_id):
         """, (playlist_id,))
     playlist = cur.fetchone()
     
-    p = Playlist(playlist_id)
-    p.name = playlist[0]
-    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
-    p.description = playlist[2]
-    p.hits = playlist[3]
+    if playlist is None:
+        return -1
+    
+    p = Playlist(playlist_id, playlist['playlist_name'], playlist['creation_date'],
+                playlist['description'],playlist['play_count'])
     p.video_list = getPlaylistVideos(p.id)
     
     return p
@@ -213,8 +243,8 @@ def genratePlaylist(name, genres, countries, artists, decades, freetext, live, c
 def reloadVideos(p):
     
     # First delete current videos that are connected to this playlist then load new videos
-    newVideos = loadVideos(p.id, p.genres, p.countries, p.artists, p.decades, p.freetext, p.live, p.cover, p.withlyrics)
-    p.video_list = newVideos
+    new_videos = loadVideos(p.id, p.genres, p.countries, p.artists, p.decades, p.freetext, p.live, p.cover, p.withlyrics)
+    p.video_list = new_videos
 
 """
 Loads videos using the given filter parameters
@@ -242,7 +272,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     # Then it connects new video ids to the playlist
     
     select_command = """
-    SELECT DISTINCT filtered_videos.id
+    SELECT DISTINCT filtered_videos.id id
     FROM   (SELECT     @a:=@a+1 AS num, video.video_id AS id
             FROM     video, artist, country, artist_genre, genre
             WHERE     video.artist_id = artist.artist_id AND
@@ -316,6 +346,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     
     cur.execute(select_command, select_data)
     video_ids = cur.fetchall()
+    video_ids = [x['id'] for x in video_ids]
     
     # Create one big insert command to minimize I/O
     insert_data = (id)
@@ -333,7 +364,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
     cur.execute(update_command, insert_data)
     con.commit()
     
-    return list(video_ids) 
+    return video_ids
 
 """
 Creates a new playlist in the DB
@@ -362,41 +393,39 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
         
     desc = buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext)
     insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), desc, 0, live, cover, withlyrics, freetext)
-    cur.execute(insert_command, insert_data)
-    con.commit()
+    #cur.execute(insert_command, insert_data)
+    #con.commit()
     
-    playlist_id = cur.lastrowid
-    
-    insert_command = ""
-    insert_data = ()
+    #insert_command = ""
+    #insert_data = ()
     
     for artist in artists:
         insert_command += """INSERT INTO playlist_artist
             (playlist_id, artist_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, artist[0],)
+        insert_data = insert_data + (artist[0],)
     
     for country in countries:
         insert_command += """INSERT INTO playlist_country
             (playlist_id, country_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, country[0],)
+        insert_data = insert_data + (country[0],)
     
     for genre in genres:
         insert_command += """INSERT INTO playlist_genre
             (playlist_id, genre_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, genre[0],)    
+        insert_data = insert_data + (genre[0],)    
     
     for decade in decades:
         insert_command += """INSERT INTO playlist_decade
             (playlist_id, decade_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, decade[0],) 
+        insert_data = insert_data + (decade[0],) 
     
     print insert_command
     print insert_data
@@ -404,7 +433,7 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     cur.execute(insert_command, insert_data)
     con.commit()
     
-    return playlist_id
+    return cur.lastrowid
 
 """
 Query DB if the requested playlist exists
@@ -450,7 +479,7 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
         props += "lyrics included, "
         
     if props != "":
-        props = props[:-2]
+        props = " " + props[:-2]
         
     string_genres = ', '.join(str(x[1]) for x in genres)
     string_countries = ', '.join(str(x[1]) for x in countries)
@@ -458,19 +487,19 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     string_decades = ', '.join(str(x[1]) for x in decades)
         
     if string_artists != "":
-        string_artists = "by " + string_artists
+        string_artists = " by " + string_artists
         
     if string_genres != "":
-        string_genres = "of type " + string_genres
+        string_genres = " of type " + string_genres
         
     if string_decades != "":
-        string_decades = "from the " + string_decades
+        string_decades = " from the " + string_decades
     
     if string_countries != "":
-        string_countries = "from " + string_countries
+        string_countries = " from " + string_countries
         
     if freetext != "":
-        string_freetext = "that have " + freetext + " in the title, "
+        string_freetext = " that have " + freetext + " in the title, "
         
-    return 'Listening to {0} videos {1} {2} {3} {4} {5} !'.format(
+    return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)

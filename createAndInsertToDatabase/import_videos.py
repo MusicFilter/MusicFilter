@@ -22,7 +22,6 @@ WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
     PREFIX wikibase: <http://wikiba.se/ontology#>
-
 """
 
 # P31: instance of
