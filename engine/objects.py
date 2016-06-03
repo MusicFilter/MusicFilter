@@ -16,14 +16,14 @@ class Playlist:
     """
     Constructor
     """
-    def __init__(self, id):
+    def __init__(self, id, name, date, desc, hits):
         # init fields
         self.id = id
-        self.hits = 0
-        self.createdOn = datetime(2000, 1, 1)
+        self.hits = hits
+        self.createdOn = date
         self.video_list = []
-        self.name = ''
-        self.description = ''
+        self.name = name
+        self.description = desc
         self.elapsed = 0
 
     """

@@ -1,4 +1,3 @@
-from dummyDB import dummy_db, getRandomPlaylist
 import MySQLdb as mdb
 import time
 from datetime import datetime
@@ -59,8 +58,22 @@ def getTrending(count=4):
     # call to DB should return a list of length 'count'
     # containing [playlist] object that have maximal hits, sorted descending
 
+    cur.execute("""SELECT playlist_id, playlist_name, creation_date, description, play_count  
+        FROM  playlist
+        ORDER BY play_count DESC
+        LIMIT %s""", (count,))
+    res = cur.fetchall()
+    trending = []
+    
+    for p in res:
+        trending.append(Playlist(p['playlist_id'],p['playlist_name'],
+                p['creation_date'],p['description'],p['play_count']))
+        
+    
+    return trending
+
     # dummy db
-    return sorted(dummy_db, key=lambda x: x.hits, reverse=True)[0:count]
+    #return sorted(dummy_db, key=lambda x: x.hits, reverse=True)[0:count]
 
 """
 Get newest playlists
@@ -73,10 +86,27 @@ def getNewest(count=4):
     # call to DB should return a list of length 'count'
     # containing [playlist] object that have their createdOn field closest to now
 
+    cur.execute("""SELECT playlist_id, playlist_name, creation_date, description, play_count  
+        FROM  playlist
+        ORDER BY creation_date DESC
+        LIMIT %s""", (count,))
+    res = cur.fetchall()
+    newest = []
+    
+    for item in res:
+        playlist = Playlist(item['playlist_id'],item['playlist_name'],
+                item['creation_date'],item['description'],item['play_count'])
+        playlist.getElapsed()
+        newest.append(playlist)
+    
+    return newest
+
     # dummy db
-    for p in dummy_db:
-        p.getElapsed()
-    return sorted(dummy_db, key=lambda x: x.createdOn, reverse=True)[0:count]
+    #for p in dummy_db:
+    #    p.getElapsed()
+    #return sorted(dummy_db, key=lambda x: x.createdOn, reverse=True)[0:count]
+
+
 
 """
 Get playlist videos by playlist_id
@@ -108,12 +138,8 @@ def getPlaylistByName(playlist_name):
     if playlist is None:
         return -1
     
-    p = Playlist(playlist[0])
-    p.name = playlist['playlist_name']
-    #p.createdOn = datetime.strptime(playlist['creation_date'], '%Y-%m-%d %H:%M:%S')
-    p.createdOn = playlist['creation_date']
-    p.description = playlist['description']
-    p.hits = playlist['play_count']
+    p = Playlist(playlist['playlist_id'],playlist_name,playlist['creation_date'],
+                 playlist['description'],playlist['play_count'])
     p.video_list = getPlaylistVideos(p.id)
     
     return p
@@ -147,12 +173,8 @@ def getPlaylistById(playlist_id):
     if playlist is None:
         return -1
     
-    p = Playlist(playlist_id)
-    p.name = playlist['playlist_name']
-    #p.createdOn = datetime.strptime(playlist['creation_date'], '%Y-%m-%d %H:%M:%S')
-    p.createdOn = playlist['creation_date']
-    p.description = playlist['description']
-    p.hits = playlist['play_count']
+    p = Playlist(playlist_id, playlist['playlist_name'], playlist['creation_date'],
+                playlist['description'],playlist['play_count'])
     p.video_list = getPlaylistVideos(p.id)
     
     return p
@@ -371,41 +393,39 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
         
     desc = buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext)
     insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), desc, 0, live, cover, withlyrics, freetext)
-    cur.execute(insert_command, insert_data)
-    con.commit()
+    #cur.execute(insert_command, insert_data)
+    #con.commit()
     
-    playlist_id = cur.lastrowid
-    
-    insert_command = ""
-    insert_data = ()
+    #insert_command = ""
+    #insert_data = ()
     
     for artist in artists:
         insert_command += """INSERT INTO playlist_artist
             (playlist_id, artist_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, artist[0],)
+        insert_data = insert_data + (artist[0],)
     
     for country in countries:
         insert_command += """INSERT INTO playlist_country
             (playlist_id, country_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, country[0],)
+        insert_data = insert_data + (country[0],)
     
     for genre in genres:
         insert_command += """INSERT INTO playlist_genre
             (playlist_id, genre_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, genre[0],)    
+        insert_data = insert_data + (genre[0],)    
     
     for decade in decades:
         insert_command += """INSERT INTO playlist_decade
             (playlist_id, decade_id)
-            VALUES (%s, %s);
+            VALUES (LAST_INSERT_ID(), %s);
             """
-        insert_data = insert_data + (playlist_id, decade[0],) 
+        insert_data = insert_data + (decade[0],) 
     
     print insert_command
     print insert_data
@@ -413,7 +433,7 @@ def createPlaylist(name, genres, countries, artists, decades, freetext, live, co
     cur.execute(insert_command, insert_data)
     con.commit()
     
-    return playlist_id
+    return cur.lastrowid
 
 """
 Query DB if the requested playlist exists
