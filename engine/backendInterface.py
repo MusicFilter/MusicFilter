@@ -106,10 +106,11 @@ def getPlaylistByName(playlist_name):
     playlist = cur.fetchone()
     
     p = Playlist(playlist[0])
-    p.name = playlist_name
-    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
-    p.description = playlist[2]
-    p.hits = playlist[3]
+    p.name = playlist['playlist_name']
+    #p.createdOn = datetime.strptime(playlist['creation_date'], '%Y-%m-%d %H:%M:%S')
+    p.createdOn = playlist['creation_date']
+    p.description = playlist['description']
+    p.hits = playlist['play_count']
     p.video_list = getPlaylistVideos(p.id)
     
     return p
@@ -140,11 +141,14 @@ def getPlaylistById(playlist_id):
         """, (playlist_id,))
     playlist = cur.fetchone()
     
+    print playlist
+    
     p = Playlist(playlist_id)
-    p.name = playlist[0]
-    p.createdOn = datetime.strptime(playlist[1], '%Y-%m-%d %H:%M:%S')
-    p.description = playlist[2]
-    p.hits = playlist[3]
+    p.name = playlist['playlist_name']
+    #p.createdOn = datetime.strptime(playlist['creation_date'], '%Y-%m-%d %H:%M:%S')
+    p.createdOn = playlist['creation_date']
+    p.description = playlist['description']
+    p.hits = playlist['play_count']
     p.video_list = getPlaylistVideos(p.id)
     
     return p
