@@ -280,28 +280,28 @@ def createPlaylist(name, desc, live, cover, withlyrics, freetext, artists, count
                     (playlist_id, artist_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
-            cursor.execute(insert_command, artist[0])
+            cursor.execute(insert_command, [artist[0]])
 
         for country in countries:
             insert_command = """INSERT INTO playlist_country
                     (playlist_id, country_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
-            cursor.execute(insert_command, country[0])
+            cursor.execute(insert_command, [country[0]])
 
         for genre in genres:
             insert_command = """INSERT INTO playlist_genre
                     (playlist_id, genre_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
-            cursor.execute(insert_command, genre[0])
+            cursor.execute(insert_command, [genre[0]])
 
         for decade in decades:
             insert_command = """INSERT INTO playlist_decade
                     (playlist_id, decade_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
-            cursor.execute(insert_command, decade[0])
+            cursor.execute(insert_command, [decade[0]])
 
         return playlist_id
 

@@ -4,6 +4,71 @@ from engine.objects import Playlist
 import dbaccess
 
 
+# Read connection details from properties
+con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', charset='utf8', use_unicode=True)
+cur = con.cursor(mdb.cursors.DictCursor)
+
+"""
+Get all countries from DB
+"""
+#def getArtists():
+    
+    # Return all artists from the DB to populate the list
+    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
+
+#    cur.execute("""SELECT artist_id id, artist_name name
+#        FROM  artist""")
+#    return cur.fetchall()
+
+
+"""
+Get all artists from DB
+"""
+def getArtists(search):
+    
+    # Return all artists from the DB to populate the list
+    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
+
+    cur.execute("""SELECT artist_id id, artist_name name
+        FROM  artist
+        WHERE artist_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
+    return cur.fetchall()
+
+
+"""
+Get all distinct countries from DB
+"""
+def getCountries(search):
+    
+    # select alphabetically sorted distinct countries from DB...
+    #return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
+    
+    cur.execute("""SELECT country_id id, country_name name
+        FROM  country
+        WHERE country_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
+    return cur.fetchall()
+
+
+"""
+Get all distinct genres from DB
+"""
+def getGenres(search):
+    
+    # select alphabetically sorted distinct countries from DB...
+    #return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
+    
+    cur.execute("""SELECT genre_id id, genre_name name
+        FROM  genre
+        WHERE genre_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
+    return cur.fetchall()
+>>>>>>> 2d079d11001541ad670ecf274397878fd5490147
+
 """
 Get top trending playlists
 Trending = maximal hit count
