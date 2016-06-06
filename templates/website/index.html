@@ -396,7 +396,7 @@
 	    $('select').trigger('change');
 	    
 	    $('#by-name').on('changed.bs.select', function (e) {
-	    	  $("#listen").attr("href", "/player/" + 1);
+	    	  $("#listen").attr("href", "/player/" + e.value);
 	    });
 
     	// Fix submit button on startup

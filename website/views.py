@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
+import engine.dbaccess as db
 import json
 from django.template.context_processors import request
 
@@ -123,7 +124,7 @@ def player(request, playlist_id, action=None):
     
         # update hit count
         else:
-            backendInterface.incrementHitCount(playlist_id)
+            #backendInterface.incrementHitCount(playlist_id)
             p.hits += 1
 
         context = {
