@@ -41,12 +41,9 @@ def getTrending(count=4):
         playlist = Playlist()
         playlist.id = p['playlist_id']
         playlist.name = p['playlist_name']
-        playlist.createdOn = p['creation_date']
-        playlist.description = p['description']
         playlist.hits = p['play_count']
 
         trending.append(playlist)
-
     
     return trending
 
@@ -62,11 +59,13 @@ def getNewest(count=4):
     res = dbaccess.getNewest(count)
     newest = []
     
-    for item in res:
-        playlist = Playlist(
-            item['playlist_id'],item['playlist_name'], item['creation_date'],item['description'],item['play_count']
-        )
+    for p in res:
+        playlist = Playlist()
+        playlist.id = p['playlist_id']
+        playlist.name = p['playlist_name']
+        playlist.createdOn = p['creation_date']
         playlist.getElapsed()
+        
         newest.append(playlist)
     
     return newest
