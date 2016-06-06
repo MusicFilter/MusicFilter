@@ -149,22 +149,17 @@ Get playlist object by its playlist_name filed
 :returns: [playlist] object or -1 if nothing was found
 :param: playlist_name [int] playlist Name
 """
-def getPlaylistByName(playlist_name):
+def getPlaylistsByName(playlist_name):
 
-    cur.execute("""SELECT playlist_id, creation_date, description, play_count 
+    cur.execute("""SELECT playlist_id, playlist_name
         FROM playlist 
-        WHERE playlist_name = %s
-        """, (playlist_name,))
-    playlist = cur.fetchone()
+        WHERE playlist_name LIKE %s
+        """, ("%" + playlist_name + "%",))
+    return cur.fetchall()
     
-    if playlist is None:
-        return -1
-    
-    p = Playlist(playlist['playlist_id'],playlist_name,playlist['creation_date'],
-                 playlist['description'],playlist['play_count'])
-    p.video_list = getPlaylistVideos(p.id)
-    
-    return p
+    #p = Playlist(playlist['playlist_id'],playlist_name,playlist['creation_date'],
+    #             playlist['description'],playlist['play_count'])
+    #p.video_list = getPlaylistVideos(p.id)
     
 
 """

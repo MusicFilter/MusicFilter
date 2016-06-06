@@ -73,6 +73,24 @@
     <section id="listen" class="listen">
         <div class="container">
 
+			<!-- Headline -->
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h1>Find your playlist</h1>
+                    <hr class="large">
+                </div>
+            </div>
+            
+            <div class="row">
+            	<div class="col-md-12">
+            		<select name="by-name" id="by-name" data-width="90%" title="Start typing..." class="selectpicker filter" data-size="5" data-live-search="true">
+					</select>
+					<a id="listen" href="player/" class="btn btn-light">Listen</a>
+					<br><br>
+					<br><br>
+				</div>
+            </div>
+            
             <!-- Headline -->
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -358,10 +376,7 @@
  	                for (i = 0; i < l; i++) {
  	                    array.push($.extend(true, data[i], {
  	                        text : data[i].name,
- 	                        value: data[i].id + ":" + data[i].name,
- 	                        //data : {
- 	                        //    subtext: data[i].Email
- 	                        //}
+ 	                        value: data[i].id + ":" + data[i].name
  	                    }));
  	                }
  	            }
@@ -372,17 +387,22 @@
 	    return options;
     }
 
-    // Scrolls to the selected menu item on the page
     $(function() {
     	
 	    $('#artist').selectpicker().ajaxSelectPicker(getOptions('artists'));
 	    $('#country').selectpicker().ajaxSelectPicker(getOptions('countries'));
 	    $('#genre').selectpicker().ajaxSelectPicker(getOptions('genres'));
-	    $('select').trigger('change');	
+	    $('#by-name').selectpicker().ajaxSelectPicker(getOptions('find'));
+	    $('select').trigger('change');
+	    
+	    $('#by-name').on('changed.bs.select', function (e) {
+	    	  $("#listen").attr("href", "/player/" + 1);
+	    });
 
     	// Fix submit button on startup
     	fixSubmit();
-    	
+
+    	// Scrolls to the selected menu item on the page
         $('a[href*=#]:not([href=#])').click(function() {
             if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') || location.hostname == this.hostname) {
 

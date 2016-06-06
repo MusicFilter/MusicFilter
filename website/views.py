@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
 import json
+from django.template.context_processors import request
 
 """
 Homepage
@@ -73,6 +74,23 @@ def genres(request):
         content_type="application/json"
     )
     
+
+"""
+AJAX for getting playlist by name
+"""
+def find(request):
+    
+    search = request.GET.get('q')
+    playlists = []
+    
+    if search:
+        playlists = backendInterface.getPlaylistsByName(search)
+        print playlists
+    
+    return HttpResponse(
+        json.dumps(playlists),
+        content_type="application/json"
+    )
 
 """
 Player
