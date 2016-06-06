@@ -14,14 +14,14 @@ def getArtists(search):
 Get all distinct countries from DB
 """
 def getCountries(search):
-    return dbaccess.getCountries()
+    return dbaccess.getCountries(search)
 
 
 """
 Get all distinct genres from DB
 """
 def getGenres(search):
-    dbaccess.getGenres(search)
+    return dbaccess.getGenres(search)
 
 
 """

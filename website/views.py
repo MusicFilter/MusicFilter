@@ -114,6 +114,8 @@ def player(request, playlist_id, action=None):
             'action': action
         }
 
+        print p.video_list
+
     return render(request, 'player.html', context)
 
 

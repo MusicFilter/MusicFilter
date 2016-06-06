@@ -331,7 +331,7 @@ def createPlaylist(name, desc, live, cover, withlyrics, freetext, artists, count
 
         for decade in decades:
             insert_command = """INSERT INTO playlist_decade
-                    (playlist_id, decade_id)
+                    (playlist_id, decade)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
             cursor.execute(insert_command, [decade[0]])
