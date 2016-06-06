@@ -14,9 +14,6 @@ def home(request):
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
-        'countries':    [], #backendInterface.getCountries(),
-        'artists':      [], #backendInterface.getArtists(),
-        'genres':       [], #backendInterface.getGenres(),
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
@@ -44,7 +41,7 @@ def artists(request):
     
     
 """
-AJAX that retrieves artists
+AJAX that retrieves countries
 """
 def countries(request):
     
@@ -61,7 +58,7 @@ def countries(request):
     
     
 """
-AJAX that retrieves artists
+AJAX that retrieves genres
 """
 def genres(request):
     
