@@ -12,39 +12,61 @@ cur = con.cursor(mdb.cursors.DictCursor)
 """
 Get all countries from DB
 """
-def getArtists():
+#def getArtists():
+    
+    # Return all artists from the DB to populate the list
+    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
+
+#    cur.execute("""SELECT artist_id id, artist_name name
+#        FROM  artist""")
+#    return cur.fetchall()
+
+
+"""
+Get all artists from DB
+"""
+def getArtists(search):
     
     # Return all artists from the DB to populate the list
     #return sorted(artist_db, key=lambda x: x.name, reverse=False)
 
     cur.execute("""SELECT artist_id id, artist_name name
-        FROM  artist""")
+        FROM  artist
+        WHERE artist_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
     return cur.fetchall()
 
 
 """
 Get all distinct countries from DB
 """
-def getCountries():
+def getCountries(search):
     
     # select alphabetically sorted distinct countries from DB...
     #return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
     
     cur.execute("""SELECT country_id id, country_name name
-        FROM  country""")
+        FROM  country
+        WHERE country_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
     return cur.fetchall()
 
 
 """
 Get all distinct genres from DB
 """
-def getGenres():
+def getGenres(search):
     
     # select alphabetically sorted distinct countries from DB...
     #return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
     
     cur.execute("""SELECT genre_id id, genre_name name
-        FROM  genre""")
+        FROM  genre
+        WHERE genre_name LIKE %s
+        LIMIT 50
+        """, ("%" + search + "%",))
     return cur.fetchall()
 
 """
@@ -485,6 +507,7 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     string_countries = ', '.join(str(x[1]) for x in countries)
     string_artists = ', '.join(str(x[1]) for x in artists)
     string_decades = ', '.join(str(x[1]) for x in decades)
+    string_freetext = ''
         
     if string_artists != "":
         string_artists = " by " + string_artists
