@@ -1,5 +1,6 @@
 from django.db import connection
 import time
+import objects
 
 """
 Helper function to replace fetchall output with [dict]
@@ -162,15 +163,17 @@ Loads videos using the given playlist
 @fetchall
 MONSTERQUERY
 """
-def loadVideos(playlist):
+def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
-    if playlist.hits > 0:
+    if mode == objects.LOAD_FROM_TABLE:
         # reload playlist from DB
+        print 'loading from playlist_to_video table'
         with connection.cursor() as cursor:
             cursor.execute("SELECT video_id FROM playlist_to_video WHERE playlist_id = %s", [playlist.id])
             return cursor.fetchall()
 
     select_data = []
+    print 'loading from monsterquery'
 
     # Prepare user input
     genreslist = [int(x[0]) for x in playlist.genres]
@@ -247,10 +250,10 @@ def loadVideos(playlist):
         filtered_videos_select = "SELECT @a:=@a+1 AS num, video.video_id AS id"
         footer = """
             WHERE filtered_videos.num IN   (SELECT *
-                                            FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) num
+                                            FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) AS num
                                                      FROM video
                                                      LIMIT 110)
-                                            random)
+                                            AS random)
             LIMIT 100;
         """
 
@@ -405,7 +408,7 @@ def getFilterDecades(playlist_id):
         cursor.execute("SELECT decade FROM playlist_decade WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
-        return dictfetchall(cursor)
+        return cursor.fetchall()
 
 
 """
@@ -421,7 +424,7 @@ def getFilterArtists(playlist_id):
         cursor.execute("SELECT artist_id FROM playlist_artist WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
-        return dictfetchall(cursor)
+        return cursor.fetchall()
 
 
 """
@@ -437,7 +440,7 @@ def getFilterCountries(playlist_id):
         cursor.execute("SELECT country_id FROM playlist_country WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
-        return dictfetchall(cursor)
+        return cursor.fetchall()
 
 
 """
@@ -453,7 +456,7 @@ def getFilterGenres(playlist_id):
         cursor.execute("SELECT genre_id FROM playlist_genre WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
-        return dictfetchall(cursor)
+        return cursor.fetchall()
 
 
 

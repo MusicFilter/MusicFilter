@@ -3,6 +3,8 @@ from random import shuffle
 
 POSTDICT = 1
 DB_ENTRY = 2
+LOAD_FROM_TABLE = 1
+LOAD_FROM_MONSTERQUERY = 2
 
 class Playlist:
 
@@ -46,6 +48,11 @@ class Playlist:
         return 'Playlist[id={0}, hits={1}, createdOn={2}, name={3}, desc={4}, elapsed={5}, video_list={6}]'.format(
             self.id, self.hits, self.createdOn, self.name, self.description, self.elapsed, self.video_list
         )
+
+    def printFilters(self):
+        print 'Filters:\nArtists:{0}\nGenres:{1}\nDecades:{2}\nCountries:{3}\nText:{4}\nCover:{5}\nLive:{6}\nLyrics:{7}'.format(
+            self.artists, self.genres, self.decades, self.countries, self.text, self.cover, self.live, self.withlyrics
+        )
     
 
     """
@@ -86,6 +93,10 @@ def playlistFactory(p_entry, type):
         p.createdOn = p_entry['creation_date']
         p.description = p_entry['description']
         p.hits = p_entry['play_count']
+        p.cover = p_entry['is_cover']
+        p.live = p_entry['is_live']
+        p.withlyrics = p_entry['is_with_lyrics']
+        p.text = p_entry['free_text']
 
     elif type == POSTDICT:
         p.artists = p_entry['artists']

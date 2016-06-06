@@ -38,8 +38,7 @@ def getTrending(count=4):
 
     # create playlist objects
     for p in res:
-        playlist = objects.playlistFactory(p, type=objects.DB_ENTRY)
-        trending.append(playlist)
+        trending.append(getPlaylistById(p['playlist_id']))
     
     return trending
 
@@ -56,7 +55,7 @@ def getNewest(count=4):
     newest = []
     
     for p in res:
-        playlist = objects.playlistFactory(p, type=objects.DB_ENTRY)
+        playlist = getPlaylistById(p['playlist_id'])
         playlist.getElapsed()
         newest.append(playlist)
     
@@ -131,16 +130,6 @@ def genratePlaylist(postdict):
 
 
 """
-Refresh video_list
-"""
-def reloadVideos(playlist):
-    
-    # First delete current videos that are connected to this playlist then load new videos
-    new_videos = loadVideos(playlist, commit=True)
-    playlist.video_list = new_videos
-
-
-"""
 Loads videos using the given playlist
 :returns: [list] of [int] video ids
 :param: [playlist] object
@@ -148,13 +137,17 @@ Loads videos using the given playlist
 """
 def loadVideos(playlist, commit):
 
-    # reload videos from DB
-    video_ids = dbaccess.loadVideos(playlist)
-    video_ids = [x[0] for x in video_ids]
-
     if commit:
+        # reload videos from DB
+        video_ids = dbaccess.loadVideos(playlist, mode=objects.LOAD_FROM_MONSTERQUERY)
+        video_ids = [x[0] for x in video_ids]
+
         # insert updated video list to DB
         dbaccess.updateVideoList(playlist.id, video_ids)
+
+    else:
+        video_ids = dbaccess.loadVideos(playlist)
+        video_ids = [x[0] for x in video_ids]
     
     return video_ids
 

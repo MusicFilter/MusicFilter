@@ -31,7 +31,7 @@ Player
 def player(request, playlist_id, action=None):
 
     p = backendInterface.getPlaylistById(playlist_id)
-    print p.video_list
+
     # playlist not found
     if p == -1:
         
