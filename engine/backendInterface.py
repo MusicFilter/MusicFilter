@@ -35,11 +35,18 @@ def getTrending(count=4):
 
     res = dbaccess.getTrending(count)
     trending = []
-    
+
+    # create playlist objects
     for p in res:
-        trending.append(
-            Playlist(p['playlist_id'],p['playlist_name'], p['creation_date'],p['description'],p['play_count'])
-        )
+        playlist = Playlist()
+        playlist.id = p['playlist_id']
+        playlist.name = p['playlist_name']
+        playlist.createdOn = p['creation_date']
+        playlist.description = p['description']
+        playlist.hits = p['play_count']
+
+        trending.append(playlist)
+
     
     return trending
 
@@ -133,18 +140,9 @@ def genratePlaylist(postdict):
     playlist.id = dbaccess.createPlaylist(playlist)
 
     # Load videos by filter and set them in new playlist
-    videos = loadVideos(playlist_id, genres, countries, artists, decades, freetext, live, cover, withlyrics)
+    playlist.video_list = loadVideos(playlist)
 
-    # Create new playlist object
-    p = Playlist(
-        playlist_id,
-        date=datetime.now(),
-        name=name,
-        hits=0,
-        desc=desc
-    )
-
-    return p
+    return playlist
 
 
 """
@@ -158,32 +156,25 @@ def reloadVideos(p):
 
 
 """
-Loads videos using the given filter parameters
-:returns: [playlist]
-:param: id [int] playlist id
-:param: genres [list] of [int] genres ID
-:param: countries [list] of [int] country ID
-:param: artists [list] of [int] artists ID
-:param: decades [list] of [int] decades ID
-:param: freetext [string] free text
+Loads videos using the given playlist
+:returns: [list] of [int] video ids
+:param: [playlist]
 """
-def loadVideos(playlist_id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
+def loadVideos(playlist):
 
     # Prepare user input
-    genreslist = [int(x[0]) for x in genres]
-    countrieslist = [int(x[0]) for x in countries]
-    artistslist = [int(x[0]) for x in artists]
-    decadeslist = [int(x[0]) for x in decades]
-    string_freetext = '%' + freetext + '%'
+    genreslist = [int(x[0]) for x in playlist.genres]
+    countrieslist = [int(x[0]) for x in playlist.countries]
+    artistslist = [int(x[0]) for x in playlist.artists]
+    decadeslist = [int(x[0]) for x in playlist.decades]
+    string_freetext = '%' + playlist.text + '%'
 
-    video_ids = dbaccess.loadVideos(
-        playlist_id, genreslist, countrieslist, artistslist, decadeslist, string_freetext, live, cover, withlyrics
-    )
-
+    # reload videos from DB
+    video_ids = dbaccess.loadVideos(playlist)
     video_ids = [x['id'] for x in video_ids]
     
-    # Create one big insert command to minimize I/O
-    dbaccess.updateVideoList(playlist_id, video_ids)
+    # insert updated video list to DB
+    dbaccess.updateVideoList(playlist.id, video_ids)
     
     return video_ids
 

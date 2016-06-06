@@ -148,7 +148,7 @@ def getPlaylistById(playlist_id):
 
 
 """
-@commit
+@update
 UPDATE playlist SET play_count = play_count + 1
 WHERE playlist_id = <playlist_id>
 """
@@ -158,17 +158,11 @@ def incrementHitCount(playlist_id):
 
 
 """
+Loads videos using the given playlist
 @fetchall
-Loads videos using the given filter parameters
-:returns: [playlist]
-:param: id [int] playlist id
-:param: genres [list] of [int] genres ID
-:param: countries [list] of [int] country ID
-:param: artists [list] of [int] artists ID
-:param: decades [list] of [int] decades ID
-:param: freetext [string] free text
+MONSTERQUERY
 """
-def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, withlyrics):
+def loadVideos(p):
 
     select_data = []
 
@@ -187,25 +181,25 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
             \tAND artist_genre.genre_id = genre.genre_id\n"""
 
         # conditional appends for genre, countries, artists, decades, freetext
-        if len(genres) > 0:
-            filtered_videos_selectless += "\t\tAND genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genres)))
-            select_data.extend(genres)
+        if len(p.genres) > 0:
+            filtered_videos_selectless += "\t\tAND genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.genres)))
+            select_data.extend(p.genres)
 
-        if len(countries) > 0:
-            filtered_videos_selectless += "\t\tAND artist.country_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(countries)))
-            select_data.extend(countries)
+        if len(p.countries) > 0:
+            filtered_videos_selectless += "\t\tAND artist.country_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.countries)))
+            select_data.extend(p.countries)
 
-        if len(artists) > 0:
-            filtered_videos_selectless += "\t\tAND artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artists)))
-            select_data.extend(artists)
+        if len(p.artists) > 0:
+            filtered_videos_selectless += "\t\tAND artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.artists)))
+            select_data.extend(p.artists)
 
-        if len(decades) > 0:
-            filtered_videos_selectless += "\t\tAND artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(decades)))
-            select_data.extend(decades)
+        if len(p.decades) > 0:
+            filtered_videos_selectless += "\t\tAND artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.decades)))
+            select_data.extend(p.decades)
 
-        if len(freetext) > 0:
+        if len(p.text) > 0:
             filtered_videos_selectless += "\t\tAND (video.title LIKE %s OR video.description LIKE %s)\n"
-            select_data.extend([freetext, freetext])
+            select_data.extend([p.text, p.text])
 
         filtered_videos_selectless += """\t\tAND video.is_live = %s
             \tAND video.is_cover = %s
@@ -229,7 +223,7 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
         main_query = '{0} ({1} {2}) as filtered_videos {3}'.format(header, filtered_videos_select, filtered_videos_selectless, footer)
         query = '{0} {1}'.format(count_query, main_query)
 
-        select_data.extend([live, cover, withlyrics])
+        select_data.extend([p.live, p.cover, p.withlyrics])
 
         # execute query
         cursor.execute(count_query, select_data)
@@ -240,18 +234,22 @@ def loadVideos(id, genres, countries, artists, decades, freetext, live, cover, w
 
 
 """
-@commit
+@update
 Update video list by playlist_id
+
+Part1 deletes current videos associated to playlist_id
+Part2 inserts given video_ids to DB
 """
 def updateVideoList(playlist_id, video_ids):
     with connection.cursor() as cursor:
         insert_data = [playlist_id]
 
+        # part1
         update_command = """DELETE FROM playlist_to_video
                WHERE playlist_id = %s;
                """
 
-        # concatenate all rows to one query
+        # part2 - concatenate all rows to one query
         for video_id in video_ids:
             update_command += """INSERT INTO playlist_to_video
                     (playlist_id, video_id)
@@ -263,6 +261,7 @@ def updateVideoList(playlist_id, video_ids):
         # execute query
         cursor.execute(update_command, insert_data)
 
+
 """
 1. Insert to playlist table
 @update
@@ -273,11 +272,29 @@ VALUES (<p.name>, now, <p.desc>, 0, <p.live>, <p.cover>, <p.withlyrics>, <p.text
 2. Retrieve playlist ID
 
 3. Insert playlist's filters
-3.1 Save artists filter
+3.1 artists filter
 @update
 INSERT INTO playlist_artist
 (playlist_id, artist_id)
-VALUES (LAST_INSERT_ID(), %s)
+VALUES (LAST_INSERT_ID(), <artist_id>)
+
+3.2 countries filter
+@update
+INSERT INTO playlist_country
+(playlist_id, country_id)
+VALUES (LAST_INSERT_ID(), <country_id>)
+
+3.3 genres filter
+@update
+INSERT INTO playlist_genre
+(playlist_id, genre_id)
+VALUES (LAST_INSERT_ID(), <genre_id>);
+
+3.4 decades filter
+@update
+INSERT INTO playlist_decade
+(playlist_id, decade)
+VALUES (LAST_INSERT_ID(), <decade_id>);
 """
 def createPlaylist(p):
     with connection.cursor() as cursor:
@@ -294,6 +311,7 @@ def createPlaylist(p):
         # retrieve playlist ID
         playlist_id = cursor.lastrowid
 
+        # Q3.1
         for artist in p.artists:
             insert_command = """INSERT INTO playlist_artist
                     (playlist_id, artist_id)
@@ -301,6 +319,7 @@ def createPlaylist(p):
                     """
             cursor.execute(insert_command, [artist[0]])
 
+        # Q3.2
         for country in p.countries:
             insert_command = """INSERT INTO playlist_country
                     (playlist_id, country_id)
@@ -308,6 +327,7 @@ def createPlaylist(p):
                     """
             cursor.execute(insert_command, [country[0]])
 
+        # Q3.3
         for genre in p.genres:
             insert_command = """INSERT INTO playlist_genre
                     (playlist_id, genre_id)
@@ -315,6 +335,7 @@ def createPlaylist(p):
                     """
             cursor.execute(insert_command, [genre[0]])
 
+        # Q3.4
         for decade in p.decades:
             insert_command = """INSERT INTO playlist_decade
                     (playlist_id, decade)
