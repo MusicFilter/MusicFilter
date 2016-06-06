@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
+import json
 
 """
 Homepage
@@ -12,9 +14,6 @@ def home(request):
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
-        'countries':    backendInterface.getCountries(),
-        'artists':      backendInterface.getArtists(),
-        'genres':       backendInterface.getGenres(),
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
@@ -23,6 +22,57 @@ def home(request):
 
     return render(request, 'index.html', context)
 
+
+"""
+AJAX that retrieves artists
+"""
+def artists(request):
+    
+    search = request.GET.get('q')
+    artists = []
+    
+    if search:
+        artists = backendInterface.getArtists(search)
+    
+    return HttpResponse(
+        json.dumps(artists),
+        content_type="application/json"
+    )
+    
+    
+"""
+AJAX that retrieves countries
+"""
+def countries(request):
+    
+    search = request.GET.get('q')
+    countries = []
+    
+    if search:
+        countries = backendInterface.getCountries(search)
+    
+    return HttpResponse(
+        json.dumps(countries),
+        content_type="application/json"
+    )
+    
+    
+"""
+AJAX that retrieves genres
+"""
+def genres(request):
+    
+    search = request.GET.get('q')
+    genres = []
+    
+    if search:
+        genres = backendInterface.getGenres(search)
+    
+    return HttpResponse(
+        json.dumps(genres),
+        content_type="application/json"
+    )
+    
 
 """
 Player
