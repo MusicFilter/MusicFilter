@@ -88,6 +88,10 @@ Get playlist object by its playlist_name filed
 """
 def getPlaylistsByName(playlist_name):
     return dbaccess.getPlaylistsByName("%" + playlist_name + "%")
+
+
+def incrementHitCount(playlist_id):
+    dbaccess.incrementHitCount(playlist_id)
     
 
 """
@@ -301,5 +305,5 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     if freetext != "":
         string_freetext = " that have " + freetext + " in the title, "
         
-    return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
+    return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
