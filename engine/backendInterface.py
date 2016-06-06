@@ -8,21 +8,34 @@ import dbaccess
 Get all artists from DB
 """
 def getArtists(search):
+<<<<<<< HEAD
     return dbaccess.getArtists(search)
+=======
+    return dbaccess.getArtists("%" + search + "%")
+
+>>>>>>> origin/master
 
 """
 Get all distinct countries from DB
 """
 def getCountries(search):
+<<<<<<< HEAD
     return dbaccess.getCountries(search)
+=======
+    return dbaccess.getCountries("%" + search + "%")
+>>>>>>> origin/master
 
 
 """
 Get all distinct genres from DB
 """
 def getGenres(search):
+<<<<<<< HEAD
     return dbaccess.getGenres(search)
 
+=======
+    return dbaccess.getGenres("%" + search + "%")
+>>>>>>> origin/master
 
 """
 Get top trending playlists
@@ -69,19 +82,12 @@ Get playlist object by its playlist_name filed
 :returns: [playlist] object or -1 if nothing was found
 :param: playlist_name [int] playlist Name
 """
-def getPlaylistByName(playlist_name):
-    playlist = dbaccess.getPlaylistByName(playlist_name)
+def getPlaylistsByName(playlist_name):
+    return dbaccess.getPlaylistsByName("%" + playlist_name + "%")
 
-    if playlist is None:
-        return -1
-    
-    p = Playlist(
-        playlist['playlist_id'],playlist_name,playlist['creation_date'], playlist['description'],playlist['play_count']
-    )
 
-    p.video_list = dbaccess.getPlaylistVideos(p.id)
-    
-    return p
+def incrementHitCount(playlist_id):
+    dbaccess.incrementHitCount(playlist_id)
     
 
 """
@@ -203,6 +209,32 @@ def loadVideos(playlist_id, genres, countries, artists, decades, freetext, live,
     
     return video_ids
 
+<<<<<<< HEAD
+=======
+"""
+Creates a new playlist in the DB
+:returns: [int] playlist id
+:param: name [string] of the playlist
+:param: genres [list] of [int] genres ID
+:param: countries [list] of [int] country ID
+:param: artists [list] of [int] artists ID
+:param: decades [list] of [int] decades ID
+:param: freetext [string] free text
+
+"""
+def createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics):
+    
+    # Here comes a query that inserts a new playlist
+    # Then connects the playlist to artist table
+    # Then connects the playlist to genre table
+    # Then connects the playlist to country table
+    # Then connects the playlist to decades
+
+    return dbaccess.createPlaylist(name)
+    
+    
+
+>>>>>>> origin/master
 
 """
 Query DB if the requested playlist exists
@@ -271,7 +303,7 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     if freetext != "":
         string_freetext = " that have " + freetext + " in the title, "
         
-    return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
+    return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
 
 

@@ -39,7 +39,11 @@ def getArtists(search):
         data = '%{0}%'.format(search)
 
         # execute queries
+<<<<<<< HEAD
         cursor.execute(query, [data])
+=======
+        cursor.execute("SELECT artist_id id, artist_name name FROM artist WHERE artist_name LIKE %s LIMIT 50", [search])
+>>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -65,7 +69,11 @@ def getCountries(search):
         data = '%{0}%'.format(search)
 
         # execute queries
+<<<<<<< HEAD
         cursor.execute(query, [data])
+=======
+        cursor.execute("SELECT country_id id, country_name name FROM country WHERE country_name LIKE %s LIMIT 50", [search])
+>>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -91,7 +99,11 @@ def getGenres(search):
         data = '%{0}%'.format(search)
 
         # execute queries
+<<<<<<< HEAD
         cursor.execute(query, [data])
+=======
+        cursor.execute("SELECT genre_id id, genre_name name FROM genre WHERE genre_name LIKE %s LIMIT 50", [search])
+>>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -154,14 +166,14 @@ SELECT playlist_id, creation_date, description, play_count
 FROM playlist
 WHERE playlist_name = <playlist_name>
 """
-def getPlaylistByName(playlist_name):
+def getPlaylistsByName(playlist_name):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_id, creation_date, description, play_count FROM playlist WHERE playlist_name = %s", [playlist_name])
+        cursor.execute("SELECT playlist_id, creation_date, description, play_count FROM playlist WHERE playlist_name LIKE %s", [playlist_name])
 
         # fetch results
-        return dictfetchone(cursor)
+        return dictfetchall(cursor)
 
 
 """
