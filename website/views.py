@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from engine import backendInterface
 from engine.objects import Playlist
+import engine.dbaccess as db
 
 """
 Homepage
@@ -12,9 +13,9 @@ def home(request):
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
-        'countries':    backendInterface.getCountries(),
-        'artists':      backendInterface.getArtists(),
-        'genres':       backendInterface.getGenres(),
+        'countries':    db.getCountries(),
+        'artists':      db.getArtists(),
+        'genres':       db.getGenres(),
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
@@ -71,7 +72,7 @@ Generator
 """
 def generator(request):
     if request.method == 'POST':
-        
+        print request.POST
         name = request.POST.get('name')
         freetext=request.POST.get('text')
         

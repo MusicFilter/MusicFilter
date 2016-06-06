@@ -2,3 +2,4 @@
 venv/
 .idea/
 bootstrap-original/
+password.py

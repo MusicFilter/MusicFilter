@@ -219,7 +219,7 @@
                     		<label for="genre">Choose your genres...</label>
 						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							{% for item in genres %}
-							  	<option value="{{ item.id }}:{{ item.name }}">{{ item.name }}</option>
+							  	<option value="{{ item.id }}:{{ item.name }}">{{ item.name|title }}</option>
                             {% endfor %}
 							</select>
 						</fieldset>
