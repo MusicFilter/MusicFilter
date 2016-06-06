@@ -21,14 +21,25 @@ def dictfetchone(cursor):
 
 """
 @fetchall
-SELECT artist_id id, artist_name name"
-FROM artist
+SELECT artist_id id, artist_name name
+FROM  artist
+WHERE artist_name LIKE %<search>%
+LIMIT 50
 """
-def getArtists():
+def getArtists(search):
     with connection.cursor() as cursor:
 
+        query = """
+            SELECT artist_id id, artist_name name
+            FROM  artist
+            WHERE artist_name LIKE %s
+            LIMIT 50
+        """
+
+        data = '%{0}%'.format(search)
+
         # execute queries
-        cursor.execute("SELECT artist_id id, artist_name name FROM artist")
+        cursor.execute(query, [data])
 
         # fetch results
         return dictfetchall(cursor)
@@ -38,12 +49,23 @@ def getArtists():
 @fetchall
 SELECT country_id id, country_name name
 FROM country
+WHERE country_name LIKE %<search>%
+LIMIT 50
 """
-def getCountries():
+def getCountries(search):
     with connection.cursor() as cursor:
 
+        query = """
+            SELECT country_id id, country_name name
+            FROM country
+            WHERE country_name LIKE %s
+            LIMIT 50
+        """
+
+        data = '%{0}%'.format(search)
+
         # execute queries
-        cursor.execute("SELECT country_id id, country_name name FROM country")
+        cursor.execute(query, [data])
 
         # fetch results
         return dictfetchall(cursor)
@@ -52,16 +74,28 @@ def getCountries():
 """
 @fetchall
 SELECT genre_id id, genre_name name
-FROM genre
+FROM  genre
+WHERE genre_name LIKE %<search>%
+LIMIT 50
 """
-def getGenres():
+def getGenres(search):
     with connection.cursor() as cursor:
 
+        query = """
+            SELECT genre_id id, genre_name name
+            FROM genre
+            WHERE genre_name LIKE %s
+            LIMIT 50
+        """
+
+        data = '%{0}%'.format(search)
+
         # execute queries
-        cursor.execute("SELECT genre_id id, genre_name name FROM genre")
+        cursor.execute(query, [data])
 
         # fetch results
         return dictfetchall(cursor)
+
 
 
 """
@@ -265,7 +299,6 @@ def updateVideoList(playlist_id, video_ids):
 def createPlaylist(name, desc, live, cover, withlyrics, freetext, artists, countries, genres, decades):
     with connection.cursor() as cursor:
 
-        # Create one big insert command to minimize I/O
         insert_command = """INSERT INTO playlist
                 (playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);

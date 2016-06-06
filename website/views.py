@@ -2,11 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
-<<<<<<< HEAD
-import engine.dbaccess as db
-=======
 import json
->>>>>>> 2d079d11001541ad670ecf274397878fd5490147
+
 
 """
 Homepage
@@ -18,12 +15,6 @@ def home(request):
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
-<<<<<<< HEAD
-        'countries':    db.getCountries(),
-        'artists':      db.getArtists(),
-        'genres':       db.getGenres(),
-=======
->>>>>>> 2d079d11001541ad670ecf274397878fd5490147
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
@@ -95,7 +86,7 @@ def player(request, playlist_id, action=None):
     if p == -1:
         
         # 'playlist not found'
-        playlist404 = Playlist(-1)
+        playlist404 = Playlist(-1, None, None, None, None)
         playlist404.name = 'Playlist Not Found'
         playlist404.description = 'Oops, we\'re sorry, but we couldn\'t find the playlist you were looking for...'
         playlist404.video_list = []
@@ -130,10 +121,13 @@ def player(request, playlist_id, action=None):
 Generator
 """
 def generator(request):
+
+    playlist = None
+
     if request.method == 'POST':
-        print request.POST
+
         name = request.POST.get('name')
-        freetext=request.POST.get('text')
+        freetext = request.POST.get('text')
         
         artists = []
         for artist in request.POST.getlist('artist'):

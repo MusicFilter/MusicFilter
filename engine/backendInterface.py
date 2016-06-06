@@ -4,70 +4,25 @@ from engine.objects import Playlist
 import dbaccess
 
 
-# Read connection details from properties
-con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', charset='utf8', use_unicode=True)
-cur = con.cursor(mdb.cursors.DictCursor)
-
-"""
-Get all countries from DB
-"""
-#def getArtists():
-    
-    # Return all artists from the DB to populate the list
-    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
-
-#    cur.execute("""SELECT artist_id id, artist_name name
-#        FROM  artist""")
-#    return cur.fetchall()
-
-
 """
 Get all artists from DB
 """
 def getArtists(search):
-    
-    # Return all artists from the DB to populate the list
-    #return sorted(artist_db, key=lambda x: x.name, reverse=False)
-
-    cur.execute("""SELECT artist_id id, artist_name name
-        FROM  artist
-        WHERE artist_name LIKE %s
-        LIMIT 50
-        """, ("%" + search + "%",))
-    return cur.fetchall()
-
+    return dbaccess.getArtists(search)
 
 """
 Get all distinct countries from DB
 """
 def getCountries(search):
-    
-    # select alphabetically sorted distinct countries from DB...
-    #return sorted(['United States', 'United Kingdom', 'Ireland', 'Australia', 'Canada'])
-    
-    cur.execute("""SELECT country_id id, country_name name
-        FROM  country
-        WHERE country_name LIKE %s
-        LIMIT 50
-        """, ("%" + search + "%",))
-    return cur.fetchall()
+    return dbaccess.getCountries()
 
 
 """
 Get all distinct genres from DB
 """
 def getGenres(search):
-    
-    # select alphabetically sorted distinct countries from DB...
-    #return sorted(['Rock', 'Blues', 'Pop', 'Alternative Rock', 'Pop Rock', 'Gospel', 'Shoegaze', 'Punk Rock', 'Britpop'])
-    
-    cur.execute("""SELECT genre_id id, genre_name name
-        FROM  genre
-        WHERE genre_name LIKE %s
-        LIMIT 50
-        """, ("%" + search + "%",))
-    return cur.fetchall()
->>>>>>> 2d079d11001541ad670ecf274397878fd5490147
+    dbaccess.getGenres(search)
+
 
 """
 Get top trending playlists
@@ -110,23 +65,6 @@ def getNewest(count=4):
 
 
 """
-Get playlist videos by playlist_id
-:returns: [videos] list of video ids connected to playlist
-:param: playlist_id [int] playlist ID
-
-def getPlaylistVideos(playlist_id):
-    
-    cur.execute(SELECT video_id
-        FROM  playlist_to_video
-        WHERE playlist_id = %s
-        , (playlist_id,))
-    videos = cur.fetchall()
-
-    # undict
-    return [x['video_id'] for x in videos]
-"""
-
-"""
 Get playlist object by its playlist_name filed
 :returns: [playlist] object or -1 if nothing was found
 :param: playlist_name [int] playlist Name
@@ -152,7 +90,6 @@ Get playlist object by its playlist_id filed
 :param: playlist_id [int] playlist ID
 """
 def getPlaylistById(playlist_id):
-
     playlist = dbaccess.getPlaylistById(playlist_id)
 
     if playlist is None:
@@ -266,73 +203,6 @@ def loadVideos(playlist_id, genres, countries, artists, decades, freetext, live,
     
     return video_ids
 
-"""
-Creates a new playlist in the DB
-:returns: [int] playlist id
-:param: name [string] of the playlist
-:param: genres [list] of [int] genres ID
-:param: countries [list] of [int] country ID
-:param: artists [list] of [int] artists ID
-:param: decades [list] of [int] decades ID
-:param: freetext [string] free text
-
-"""
-def createPlaylist(name, genres, countries, artists, decades, freetext, live, cover, withlyrics):
-    
-    # Here comes a query that inserts a new playlist
-    # Then connects the playlist to artist table
-    # Then connects the playlist to genre table
-    # Then connects the playlist to country table
-    # Then connects the playlist to decades
-
-    dbaccess.createPlaylist(name)
-    
-    # Create one big insert command to minimize I/O
-    insert_command = """INSERT INTO playlist
-        (playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-        """
-        
-    desc = buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext)
-    insert_data = (name, time.strftime('%Y-%m-%d %H:%M:%S'), desc, 0, live, cover, withlyrics, freetext)
-    
-    for artist in artists:
-        insert_command += """INSERT INTO playlist_artist
-            (playlist_id, artist_id)
-            VALUES (LAST_INSERT_ID(), %s);
-            """
-        insert_data = insert_data + (artist[0],)
-    
-    for country in countries:
-        insert_command += """INSERT INTO playlist_country
-            (playlist_id, country_id)
-            VALUES (LAST_INSERT_ID(), %s);
-            """
-        insert_data = insert_data + (country[0],)
-    
-    for genre in genres:
-        insert_command += """INSERT INTO playlist_genre
-            (playlist_id, genre_id)
-            VALUES (LAST_INSERT_ID(), %s);
-            """
-        insert_data = insert_data + (genre[0],)    
-    
-    for decade in decades:
-        insert_command += """INSERT INTO playlist_decade
-            (playlist_id, decade_id)
-            VALUES (LAST_INSERT_ID(), %s);
-            """
-        insert_data = insert_data + (decade[0],) 
-    
-    print insert_command
-    print insert_data
-
-    cur.execute(insert_command, insert_data)
-    con.commit()
-
-    return cur.lastrowid
-
-
 
 """
 Query DB if the requested playlist exists
@@ -403,3 +273,7 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
         
     return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
+
+
+def incrementHitCount(playlist_id):
+    dbaccess.incrementHitCount(playlist_id)
