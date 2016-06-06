@@ -55,7 +55,7 @@ create_artist_table = """
                           name VARCHAR(255),
                           dominant_decade YEAR,
                           country_id INT UNSIGNED,
-                          is_band BOOLEAN,
+                          is_band BOOLEAN NOT NULL,
                           PRIMARY KEY (id),
                           FOREIGN KEY (country_id)
                               REFERENCES country(id)
@@ -91,12 +91,12 @@ cur.execute(create_artist_genre_table)
 create_video_table = """
                      CREATE TABLE video (
                          id CHAR(11) NOT NULL,
-                         title VARCHAR(255),
-                         description VARCHAR(255),
+                         title VARCHAR(255) NOT NULL,
+                         description VARCHAR(255) NOT NULL,
                          artist_id INT UNSIGNED,
-                         is_cover BOOLEAN,
-                         is_live BOOLEAN,
-                         with_lyrics BOOLEAN,
+                         is_cover BOOLEAN NOT NULL,
+                         is_live BOOLEAN NOT NULL,
+                         with_lyrics BOOLEAN NOT NULL,
                          PRIMARY KEY (id),
                          FOREIGN KEY (artist_id)
                              REFERENCES artist(id)

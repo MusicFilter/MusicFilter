@@ -28,13 +28,13 @@ cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_un
 create_playlist_table = """
                         CREATE TABLE playlist (
                             id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                            name VARCHAR(60),
-                            creation_date TIMESTAMP,
-                            description VARCHAR(1000),
-                            play_count INT UNSIGNED,
-                            is_live BOOLEAN,
-                            is_cover BOOLEAN,
-                            is_with_lyrics BOOLEAN,
+                            name VARCHAR(60) NOT NULL,
+                            creation_date TIMESTAMP NOT NULL,
+                            description VARCHAR(1000) NOT NULL,
+                            play_count INT UNSIGNED NOT NULL,
+                            is_live BOOLEAN NOT NULL,
+                            is_cover BOOLEAN NOT NULL,
+                            is_with_lyrics BOOLEAN NOT NULL,
                             free_text VARCHAR(255),
                             PRIMARY KEY (id)
                         )
