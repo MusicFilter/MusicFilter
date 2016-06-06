@@ -16,23 +16,35 @@ class Playlist:
     """
     Constructor
     """
-    def __init__(self, id, name, date, desc, hits):
+    def __init__(self):
         # init fields
-        self.id = id
-        self.hits = hits
-        self.createdOn = date
+        self.id = -1
+        self.hits = 0
+        self.createdOn = None
         self.video_list = []
-        self.name = name
-        self.description = desc
+        self.name = None
+        self.description = None
         self.elapsed = 0
+
+        # filters
+        self.artists = None
+        self.genres = None
+        self.decades = None
+        self.countries = None
+        self.text = ''
 
     """
     toString
     """
     def __str__(self):
-        return 'Playlist[id={0}, hits={1}, createdOn={2}]'.format(self.id, self.hits, self.createdOn)
+        return 'Playlist[id={0}, hits={1}, createdOn={2}, name={3}, desc={4}, elapsed={5}, video_list={6}]'.format(
+            self.id, self.hits, self.createdOn, self.name, self.description, self.elapsed, self.video_list
+        )
     
 
+    """
+    Get elapsed time since creation
+    """
     def getElapsed(self):
         e = datetime.now() - self.createdOn
 
@@ -49,5 +61,8 @@ class Playlist:
         elif e.seconds > 0:
             self.elapsed = '{0}s ago'.format(e.seconds)
 
+    """
+    Reshuffle video list
+    """
     def reshuffle(self):
         shuffle(self.video_list)

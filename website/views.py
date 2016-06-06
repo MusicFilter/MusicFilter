@@ -2,14 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
-<<<<<<< HEAD
 import json
 
-=======
-import engine.dbaccess as db
-import json
-from django.template.context_processors import request
->>>>>>> origin/master
 
 """
 Homepage
@@ -30,73 +24,6 @@ def home(request):
     return render(request, 'index.html', context)
 
 
-"""
-AJAX that retrieves artists
-"""
-def artists(request):
-    
-    search = request.GET.get('q')
-    artists = []
-    
-    if search:
-        artists = backendInterface.getArtists(search)
-    
-    return HttpResponse(
-        json.dumps(artists),
-        content_type="application/json"
-    )
-    
-    
-"""
-AJAX that retrieves countries
-"""
-def countries(request):
-    
-    search = request.GET.get('q')
-    countries = []
-    
-    if search:
-        countries = backendInterface.getCountries(search)
-    
-    return HttpResponse(
-        json.dumps(countries),
-        content_type="application/json"
-    )
-    
-    
-"""
-AJAX that retrieves genres
-"""
-def genres(request):
-    
-    search = request.GET.get('q')
-    genres = []
-    
-    if search:
-        genres = backendInterface.getGenres(search)
-    
-    return HttpResponse(
-        json.dumps(genres),
-        content_type="application/json"
-    )
-    
-
-"""
-AJAX for getting playlist by name
-"""
-def find(request):
-    
-    search = request.GET.get('q')
-    playlists = []
-    
-    if search:
-        playlists = backendInterface.getPlaylistsByName(search)
-        print playlists
-    
-    return HttpResponse(
-        json.dumps(playlists),
-        content_type="application/json"
-    )
 
 """
 Player
@@ -150,49 +77,123 @@ def generator(request):
     playlist = None
 
     if request.method == 'POST':
-<<<<<<< HEAD
 
-=======
-        
->>>>>>> origin/master
-        name = request.POST.get('name')
-        freetext = request.POST.get('text')
+        postdict = {}
+
+        # get data from post request
+        postdict['name'] = request.POST.get('name')
+        postdict['text'] = request.POST.get('text')
         
         artists = []
         for artist in request.POST.getlist('artist'):
             artists.append(tuple(artist.split(':')))
+        postdict['artists'] = artists
             
         genres = []
         for genre in request.POST.getlist('genre'):
             genres.append(tuple(genre.split(':')))
+        postdict['genres'] = genres
             
         countries = []
         for country in request.POST.getlist('country'):
             countries.append(tuple(country.split(':')))
+        postdict['countries'] = countries
         
         decades = []
         for decade in request.POST.getlist('decade'):
             decades.append(tuple(decade.split(':')))
+        postdict['decades'] = decades
               
         if (request.POST.get('live') == 'on'):
-            live = 1
+            postdict['live'] = 1
         else:
-            live = 0
+            postdict['live'] = 0
+
         if (request.POST.get('cover') == 'on'):
-            cover = 1
+            postdict['cover'] = 1
         else:
-            cover = 0
+            postdict['cover'] = 0
+
         if (request.POST.get('withlyrics') == 'on'):
-            withlyrics = 1
+            postdict['withlyrics'] = 1
         else:
-            withlyrics = 0
+            postdict['withlyrics'] = 0
         
-        playlist = backendInterface.genratePlaylist(
-            name,genres,countries,artists,decades,freetext,live,cover,withlyrics 
-        )
+        playlist = backendInterface.genratePlaylist(postdict)
 
     context = {
         'playlist_id': playlist.id
     }
 
     return render(request, 'loader.html', context)
+
+
+
+"""
+AJAX CHANNELS
+"""
+
+
+"""
+AJAX that retrieves artists
+"""
+def artists(request):
+    search = request.GET.get('q')
+    artists = []
+
+    if search:
+        artists = backendInterface.getArtists(search)
+
+    return HttpResponse(
+        json.dumps(artists),
+        content_type="application/json"
+    )
+
+
+"""
+AJAX that retrieves countries
+"""
+def countries(request):
+    search = request.GET.get('q')
+    countries = []
+
+    if search:
+        countries = backendInterface.getCountries(search)
+
+    return HttpResponse(
+        json.dumps(countries),
+        content_type="application/json"
+    )
+
+
+"""
+AJAX that retrieves genres
+"""
+def genres(request):
+    search = request.GET.get('q')
+    genres = []
+
+    if search:
+        genres = backendInterface.getGenres(search)
+
+    return HttpResponse(
+        json.dumps(genres),
+        content_type="application/json"
+    )
+
+
+"""
+AJAX for getting playlist by name
+"""
+def find(request):
+    search = request.GET.get('q')
+    playlists = []
+
+    if search:
+        playlists = backendInterface.getPlaylistsByName(search)
+        print playlists
+
+    return HttpResponse(
+        json.dumps(playlists),
+        content_type="application/json"
+    )

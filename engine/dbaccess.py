@@ -28,22 +28,7 @@ LIMIT 50
 """
 def getArtists(search):
     with connection.cursor() as cursor:
-
-        query = """
-            SELECT artist_id id, artist_name name
-            FROM  artist
-            WHERE artist_name LIKE %s
-            LIMIT 50
-        """
-
-        data = '%{0}%'.format(search)
-
-        # execute queries
-<<<<<<< HEAD
-        cursor.execute(query, [data])
-=======
         cursor.execute("SELECT artist_id id, artist_name name FROM artist WHERE artist_name LIKE %s LIMIT 50", [search])
->>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -58,22 +43,7 @@ LIMIT 50
 """
 def getCountries(search):
     with connection.cursor() as cursor:
-
-        query = """
-            SELECT country_id id, country_name name
-            FROM country
-            WHERE country_name LIKE %s
-            LIMIT 50
-        """
-
-        data = '%{0}%'.format(search)
-
-        # execute queries
-<<<<<<< HEAD
-        cursor.execute(query, [data])
-=======
         cursor.execute("SELECT country_id id, country_name name FROM country WHERE country_name LIKE %s LIMIT 50", [search])
->>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -88,22 +58,7 @@ LIMIT 50
 """
 def getGenres(search):
     with connection.cursor() as cursor:
-
-        query = """
-            SELECT genre_id id, genre_name name
-            FROM genre
-            WHERE genre_name LIKE %s
-            LIMIT 50
-        """
-
-        data = '%{0}%'.format(search)
-
-        # execute queries
-<<<<<<< HEAD
-        cursor.execute(query, [data])
-=======
         cursor.execute("SELECT genre_id id, genre_name name FROM genre WHERE genre_name LIKE %s LIMIT 50", [search])
->>>>>>> origin/master
 
         # fetch results
         return dictfetchall(cursor)
@@ -308,40 +263,59 @@ def updateVideoList(playlist_id, video_ids):
         # execute query
         cursor.execute(update_command, insert_data)
 
-def createPlaylist(name, desc, live, cover, withlyrics, freetext, artists, countries, genres, decades):
+"""
+1. Insert to playlist table
+@update
+INSERT INTO playlist
+(playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
+VALUES (<p.name>, now, <p.desc>, 0, <p.live>, <p.cover>, <p.withlyrics>, <p.text>)
+
+2. Retrieve playlist ID
+
+3. Insert playlist's filters
+3.1 Save artists filter
+@update
+INSERT INTO playlist_artist
+(playlist_id, artist_id)
+VALUES (LAST_INSERT_ID(), %s)
+"""
+def createPlaylist(p):
     with connection.cursor() as cursor:
 
+        # Q1
         insert_command = """INSERT INTO playlist
                 (playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-                """
+        """
 
-        insert_data = [name, time.strftime('%Y-%m-%d %H:%M:%S'), desc, 0, live, cover, withlyrics, freetext]
+        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.desc, 0, p.live, p.cover, p.withlyrics, p.freetext]
         cursor.execute(insert_command, insert_data)
+
+        # retrieve playlist ID
         playlist_id = cursor.lastrowid
 
-        for artist in artists:
+        for artist in p.artists:
             insert_command = """INSERT INTO playlist_artist
                     (playlist_id, artist_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
             cursor.execute(insert_command, [artist[0]])
 
-        for country in countries:
+        for country in p.countries:
             insert_command = """INSERT INTO playlist_country
                     (playlist_id, country_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
             cursor.execute(insert_command, [country[0]])
 
-        for genre in genres:
+        for genre in p.genres:
             insert_command = """INSERT INTO playlist_genre
                     (playlist_id, genre_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
             cursor.execute(insert_command, [genre[0]])
 
-        for decade in decades:
+        for decade in p.decades:
             insert_command = """INSERT INTO playlist_decade
                     (playlist_id, decade)
                     VALUES (LAST_INSERT_ID(), %s);
