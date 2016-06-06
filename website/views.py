@@ -2,11 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
-<<<<<<< HEAD
 import engine.dbaccess as db
-=======
 import json
->>>>>>> 2d079d11001541ad670ecf274397878fd5490147
+from django.template.context_processors import request
 
 """
 Homepage
@@ -18,12 +16,6 @@ def home(request):
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
-<<<<<<< HEAD
-        'countries':    db.getCountries(),
-        'artists':      db.getArtists(),
-        'genres':       db.getGenres(),
-=======
->>>>>>> 2d079d11001541ad670ecf274397878fd5490147
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
@@ -85,6 +77,23 @@ def genres(request):
     
 
 """
+AJAX for getting playlist by name
+"""
+def find(request):
+    
+    search = request.GET.get('q')
+    playlists = []
+    
+    if search:
+        playlists = backendInterface.getPlaylistsByName(search)
+        print playlists
+    
+    return HttpResponse(
+        json.dumps(playlists),
+        content_type="application/json"
+    )
+
+"""
 Player
 """
 def player(request, playlist_id, action=None):
@@ -131,7 +140,7 @@ Generator
 """
 def generator(request):
     if request.method == 'POST':
-        print request.POST
+        
         name = request.POST.get('name')
         freetext=request.POST.get('text')
         

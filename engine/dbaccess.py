@@ -24,11 +24,11 @@ def dictfetchone(cursor):
 SELECT artist_id id, artist_name name"
 FROM artist
 """
-def getArtists():
+def getArtists(search):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT artist_id id, artist_name name FROM artist")
+        cursor.execute("SELECT artist_id id, artist_name name FROM artist WHERE artist_name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -39,11 +39,11 @@ def getArtists():
 SELECT country_id id, country_name name
 FROM country
 """
-def getCountries():
+def getCountries(search):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT country_id id, country_name name FROM country")
+        cursor.execute("SELECT country_id id, country_name name FROM country WHERE country_name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -54,11 +54,11 @@ def getCountries():
 SELECT genre_id id, genre_name name
 FROM genre
 """
-def getGenres():
+def getGenres(search):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT genre_id id, genre_name name FROM genre")
+        cursor.execute("SELECT genre_id id, genre_name name FROM genre WHERE genre_name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -120,14 +120,14 @@ SELECT playlist_id, creation_date, description, play_count
 FROM playlist
 WHERE playlist_name = <playlist_name>
 """
-def getPlaylistByName(playlist_name):
+def getPlaylistsByName(playlist_name):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_id, creation_date, description, play_count FROM playlist WHERE playlist_name = %s", [playlist_name])
+        cursor.execute("SELECT playlist_id, creation_date, description, play_count FROM playlist WHERE playlist_name LIKE %s", [playlist_name])
 
         # fetch results
-        return dictfetchone(cursor)
+        return dictfetchall(cursor)
 
 
 """
