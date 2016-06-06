@@ -60,10 +60,10 @@ WSGI_APPLICATION = 'musicfilter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'DbMysql11',
-        'USER': 'DbMysql11',
-        'PASSWORD': 'DbMysql11',
-        'HOST': 'mysqlsrv.cs.tau.ac.il',
+        'NAME': 'musicfilter',
+        'USER': 'root',
+        'PASSWORD': 'B3agl34',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }

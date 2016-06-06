@@ -209,26 +209,26 @@ def getTopHits():
     return top_artist, top_genre, top_decade, top_country
 
 
-def buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext):
+def buildDescription(postdict):
     
     props = ""
     
-    if live:
+    if postdict['live']:
         props += "live, "
         
-    if cover:
+    if postdict['cover']:
         props += "cover versions, "
         
-    if withlyrics:
+    if postdict['withlyrics']:
         props += "lyrics included, "
         
     if props != "":
         props = " " + props[:-2]
         
-    string_genres = ', '.join(str(x[1]) for x in genres)
-    string_countries = ', '.join(str(x[1]) for x in countries)
-    string_artists = ', '.join(str(x[1]) for x in artists)
-    string_decades = ', '.join(str(x[1]) for x in decades)
+    string_genres = ', '.join(str(x[1]) for x in postdict['genres'])
+    string_countries = ', '.join(str(x[1]) for x in postdict['countries'])
+    string_artists = ', '.join(str(x[1]) for x in postdict['artists'])
+    string_decades = ', '.join(str(x[1]) for x in postdict['decades'])
     string_freetext = ''
         
     if string_artists != "":
@@ -243,8 +243,8 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     if string_countries != "":
         string_countries = " from " + string_countries
         
-    if freetext != "":
-        string_freetext = " that have " + freetext + " in the title, "
+    if postdict['text'] != "":
+        string_freetext = " that have " + postdict['freetext'] + " in the title, "
         
     return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)

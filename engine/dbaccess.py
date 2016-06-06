@@ -305,7 +305,7 @@ def createPlaylist(p):
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
 
-        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.desc, 0, p.live, p.cover, p.withlyrics, p.freetext]
+        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.description, 0, p.live, p.cover, p.withlyrics, p.freetext]
         cursor.execute(insert_command, insert_data)
 
         # retrieve playlist ID
