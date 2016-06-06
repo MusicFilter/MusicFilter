@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from engine.objects import Playlist
+from engine import objects
 import dbaccess
 
 
@@ -38,11 +38,7 @@ def getTrending(count=4):
 
     # create playlist objects
     for p in res:
-        playlist = Playlist()
-        playlist.id = p['playlist_id']
-        playlist.name = p['playlist_name']
-        playlist.hits = p['play_count']
-
+        playlist = objects.playlistFactory(p, type=objects.DB_ENTRY)
         trending.append(playlist)
     
     return trending
@@ -60,12 +56,8 @@ def getNewest(count=4):
     newest = []
     
     for p in res:
-        playlist = Playlist()
-        playlist.id = p['playlist_id']
-        playlist.name = p['playlist_name']
-        playlist.createdOn = p['creation_date']
+        playlist = objects.playlistFactory(p, type=objects.DB_ENTRY)
         playlist.getElapsed()
-        
         newest.append(playlist)
     
     return newest
@@ -77,7 +69,10 @@ Get playlist object by its playlist_name filed
 :param: playlist_name [int] playlist Name
 """
 def getPlaylistsByName(playlist_name):
-    return dbaccess.getPlaylistsByName("%" + playlist_name + "%")
+    playlist = dbaccess.getPlaylistsByName("%" + playlist_name + "%")
+    updateFilters(playlist)
+
+    return playlist
 
 
 def incrementHitCount(playlist_id):
@@ -94,14 +89,14 @@ def getPlaylistById(playlist_id):
 
     if playlist is None:
         return -1
-    
-    p = Playlist(
-        playlist_id, playlist['playlist_name'], playlist['creation_date'], playlist['description'],playlist['play_count']
-    )
 
-    p.video_list = dbaccess.getPlaylistVideos(p.id)
+    p = objects.playlistFactory(playlist, type=objects.DB_ENTRY)
+    updateFilters(p)
     
     return p
+
+
+
 
 
 """
@@ -123,23 +118,14 @@ def genratePlaylist(postdict):
     print 'generating a playlist from the following postdict:\n{0}'.format(postdict)
 
     # create a new playlist object
-    playlist = Playlist()
-
-    # populate playlist data from postdict
-    playlist.artists = postdict['artists']
-    playlist.countries = postdict['countries']
-    playlist.decades = postdict['decades']
-    playlist.genres = postdict['genres']
-    playlist.name = postdict['name']
-    playlist.createdOn = datetime.now()
+    playlist = objects.playlistFactory(postdict, type=objects.POSTDICT)
     playlist.description = buildDescription(postdict)
-    playlist.text = postdict['text']
 
     # Create the playlist and connect it to all the tables
     playlist.id = dbaccess.createPlaylist(playlist)
 
     # Load videos by filter and set them in new playlist
-    playlist.video_list = loadVideos(playlist)
+    playlist.video_list = loadVideos(playlist, commit=True)
 
     return playlist
 
@@ -147,48 +133,30 @@ def genratePlaylist(postdict):
 """
 Refresh video_list
 """
-def reloadVideos(p):
+def reloadVideos(playlist):
     
     # First delete current videos that are connected to this playlist then load new videos
-    new_videos = loadVideos(p.id, p.genres, p.countries, p.artists, p.decades, p.freetext, p.live, p.cover, p.withlyrics)
-    p.video_list = new_videos
+    new_videos = loadVideos(playlist, commit=True)
+    playlist.video_list = new_videos
 
 
 """
 Loads videos using the given playlist
 :returns: [list] of [int] video ids
-:param: [playlist]
+:param: [playlist] object
+:param: [boolean] commit to DB
 """
-def loadVideos(playlist):
-
-    # Prepare user input
-    genreslist = [int(x[0]) for x in playlist.genres]
-    countrieslist = [int(x[0]) for x in playlist.countries]
-    artistslist = [int(x[0]) for x in playlist.artists]
-    decadeslist = [int(x[0]) for x in playlist.decades]
-    string_freetext = '%' + playlist.text + '%'
+def loadVideos(playlist, commit):
 
     # reload videos from DB
     video_ids = dbaccess.loadVideos(playlist)
-    video_ids = [x['id'] for x in video_ids]
-    
-    # insert updated video list to DB
-    dbaccess.updateVideoList(playlist.id, video_ids)
+    video_ids = [x[0] for x in video_ids]
+
+    if commit:
+        # insert updated video list to DB
+        dbaccess.updateVideoList(playlist.id, video_ids)
     
     return video_ids
-
-
-"""
-Query DB if the requested playlist exists
-:returns: [boolean]
-:param: [int] playlist ID
-"""
-def isPlaylistExists(playlist_id):
-
-    # query the DB if the playlist exists
-
-    # dummyDB
-    return True
 
 
 """
@@ -208,26 +176,26 @@ def getTopHits():
     return top_artist, top_genre, top_decade, top_country
 
 
-def buildDescription(artists, genres, countries, decades, live, cover, withlyrics, freetext):
+def buildDescription(postdict):
     
     props = ""
     
-    if live:
+    if postdict['live']:
         props += "live, "
         
-    if cover:
+    if postdict['cover']:
         props += "cover versions, "
         
-    if withlyrics:
+    if postdict['withlyrics']:
         props += "lyrics included, "
         
     if props != "":
         props = " " + props[:-2]
         
-    string_genres = ', '.join(str(x[1]) for x in genres)
-    string_countries = ', '.join(str(x[1]) for x in countries)
-    string_artists = ', '.join(str(x[1]) for x in artists)
-    string_decades = ', '.join(str(x[1]) for x in decades)
+    string_genres = ', '.join(str(x[1]) for x in postdict['genres'])
+    string_countries = ', '.join(str(x[1]) for x in postdict['countries'])
+    string_artists = ', '.join(str(x[1]) for x in postdict['artists'])
+    string_decades = ', '.join(str(x[1]) for x in postdict['decades'])
     string_freetext = ''
         
     if string_artists != "":
@@ -242,8 +210,18 @@ def buildDescription(artists, genres, countries, decades, live, cover, withlyric
     if string_countries != "":
         string_countries = " from " + string_countries
         
-    if freetext != "":
-        string_freetext = " that have " + freetext + " in the title, "
+    if postdict['text'] != "":
+        string_freetext = " that have " + postdict['text'] + " in the title, "
         
     return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
+
+
+"""
+Update [playlist] object filters from DB
+"""
+def updateFilters(playlist):
+    playlist.artists = dbaccess.getFilterArtists(playlist.id)
+    playlist.countries = dbaccess.getFilterCountries(playlist.id)
+    playlist.genres = dbaccess.getFilterGenres(playlist.id)
+    playlist.decades = dbaccess.getFilterDecades(playlist.id)

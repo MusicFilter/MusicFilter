@@ -133,7 +133,7 @@ def getPlaylistsByName(playlist_name):
 
 """
 @fetchone
-SELECT playlist_name, creation_date, description, play_count
+SELECT *
 FROM playlist
 WHERE playlist_id = <playlist_id>
 """
@@ -141,7 +141,7 @@ def getPlaylistById(playlist_id):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_name, creation_date, description, play_count FROM playlist WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT * FROM playlist WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
         return dictfetchone(cursor)
@@ -162,17 +162,32 @@ Loads videos using the given playlist
 @fetchall
 MONSTERQUERY
 """
-def loadVideos(p):
+def loadVideos(playlist):
+
+    if playlist.hits > 0:
+        # reload playlist from DB
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT video_id FROM playlist_to_video WHERE playlist_id = %s", [playlist.id])
+            return cursor.fetchall()
 
     select_data = []
+
+    # Prepare user input
+    genreslist = [int(x[0]) for x in playlist.genres]
+    countrieslist = [int(x[0]) for x in playlist.countries]
+    artistslist = [int(x[0]) for x in playlist.artists]
+    decadeslist = [int(x[0]) for x in playlist.decades]
+    string_freetext = '%' + playlist.text + '%'
 
     # Here comes a big composite query that first generates new videos according to filter
     # Then it deletes current videos from playlist
     # Then it connects new video ids to the playlist
     with connection.cursor() as cursor:
 
-        filtered_videos_select = "SELECT @a:=@a+1 AS num, video.video_id AS id"
-        filtered_videos_count_select = "SET @videonum = (SELECT COUNT(*)"
+        cursor.execute("SET @a = 0;")
+
+        frompart = ['video']
+        wherepart = []
 
         filtered_videos_selectless = """
             FROM video, artist, country, artist_genre, genre
@@ -181,35 +196,55 @@ def loadVideos(p):
             \tAND artist_genre.genre_id = genre.genre_id\n"""
 
         # conditional appends for genre, countries, artists, decades, freetext
-        if len(p.genres) > 0:
-            filtered_videos_selectless += "\t\tAND genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.genres)))
-            select_data.extend(p.genres)
+        if len(genreslist) > 0:
+            frompart.extend(['artist_genre', 'artist', 'genre'])
+            where = "genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
+            wherepart.append(where)
+            #filtered_videos_selectless += "\t\tAND genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
+            select_data.extend(genreslist)
 
-        if len(p.countries) > 0:
-            filtered_videos_selectless += "\t\tAND artist.country_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.countries)))
-            select_data.extend(p.countries)
+        if len(countrieslist) > 0:
+            frompart.append('artist')
+            where = "artist.country_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(countrieslist)))
+            wherepart.append(where)
+            #filtered_videos_selectless += "\t\tAND artist.country_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(countrieslist)))
+            select_data.extend(countrieslist)
 
-        if len(p.artists) > 0:
-            filtered_videos_selectless += "\t\tAND artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.artists)))
-            select_data.extend(p.artists)
+        if len(artistslist) > 0:
+            frompart.append('artist')
+            where = "artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
+            wherepart.append(where)
+            #filtered_videos_selectless += "\t\tAND artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
+            select_data.extend(artistslist)
 
-        if len(p.decades) > 0:
-            filtered_videos_selectless += "\t\tAND artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(p.decades)))
-            select_data.extend(p.decades)
+        if len(decadeslist) > 0:
+            frompart.append('artist')
+            where = "artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(decadeslist)))
+            wherepart.append(where)
+            #filtered_videos_selectless += "\t\tAND artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(decadeslist)))
+            select_data.extend(decadeslist)
 
-        if len(p.text) > 0:
-            filtered_videos_selectless += "\t\tAND (video.title LIKE %s OR video.description LIKE %s)\n"
-            select_data.extend([p.text, p.text])
+        if len(playlist.text) > 0:
+            wherepart.append("(video.title LIKE %s OR video.description LIKE %s)")
+            #filtered_videos_selectless += "\t\tAND (video.title LIKE %s OR video.description LIKE %s)\n"
+            select_data.extend([string_freetext, string_freetext])
 
-        filtered_videos_selectless += """\t\tAND video.is_live = %s
-            \tAND video.is_cover = %s
-            \tAND video.with_lyrics = %s
-        """
+        wherepart.extend([
+            'video.is_live = %s',
+            'video.is_cover = %s',
+            'video.with_lyrics = %s'
+        ])
+        select_data.extend([playlist.live, playlist.cover, playlist.withlyrics])
+
+        fromstring = ', '.join(list(set(frompart)))
+        wherestring = '\n\tAND '.join(wherepart)
 
         # assemble inner query
-        count_query = filtered_videos_count_select + filtered_videos_selectless + ');'
+        count_query = 'SET @videonum = (SELECT COUNT(*) FROM {0} WHERE {1});'.format(fromstring, wherestring)
 
+        # construct main query
         header = "SELECT DISTINCT filtered_videos.id id FROM"
+        filtered_videos_select = "SELECT @a:=@a+1 AS num, video.video_id AS id"
         footer = """
             WHERE filtered_videos.num IN   (SELECT *
                                             FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) num
@@ -220,17 +255,28 @@ def loadVideos(p):
         """
 
         # assemble main query
-        main_query = '{0} ({1} {2}) as filtered_videos {3}'.format(header, filtered_videos_select, filtered_videos_selectless, footer)
+        main_query = '{0} ({1} FROM {2} WHERE {3}) as filtered_videos {4}'.format(
+            header, filtered_videos_select, fromstring, wherestring, footer
+        )
+
+        # assemble monster query
         query = '{0} {1}'.format(count_query, main_query)
 
-        select_data.extend([p.live, p.cover, p.withlyrics])
-
         # execute query
-        cursor.execute(count_query, select_data)
-        cursor.execute(main_query, select_data)
+        try:
+            cursor.execute(count_query, select_data)
+        except Exception as e:
+            print e
+            print cursor._last_executed
+
+        try:
+            cursor.execute(main_query, select_data)
+        except Exception as e:
+            print e
+            print cursor._last_executed
 
         # fetch results
-        return dictfetchall(cursor)
+        return cursor.fetchall()
 
 
 """
@@ -305,7 +351,7 @@ def createPlaylist(p):
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
 
-        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.desc, 0, p.live, p.cover, p.withlyrics, p.freetext]
+        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.description, 0, p.live, p.cover, p.withlyrics, p.text]
         cursor.execute(insert_command, insert_data)
 
         # retrieve playlist ID
@@ -346,6 +392,68 @@ def createPlaylist(p):
         return playlist_id
 
 
+"""
+@fetchall
+SELECT decade
+FROM playlist_decade
+WHERE playlist_id = <playlist_id>
+"""
+def getFilterDecades(playlist_id):
+    with connection.cursor() as cursor:
+
+        # execute query
+        cursor.execute("SELECT decade FROM playlist_decade WHERE playlist_id = %s", [playlist_id])
+
+        # fetch results
+        return dictfetchall(cursor)
+
+
+"""
+@fetchall
+SELECT artist_id
+FROM playlist_artist
+WHERE playlist_id = <playlist_id>
+"""
+def getFilterArtists(playlist_id):
+    with connection.cursor() as cursor:
+
+        # execute query
+        cursor.execute("SELECT artist_id FROM playlist_artist WHERE playlist_id = %s", [playlist_id])
+
+        # fetch results
+        return dictfetchall(cursor)
+
+
+"""
+@fetchall
+SELECT country_id
+FROM playlist_country
+WHERE playlist_id = <playlist_id>
+"""
+def getFilterCountries(playlist_id):
+    with connection.cursor() as cursor:
+
+        # execute query
+        cursor.execute("SELECT country_id FROM playlist_country WHERE playlist_id = %s", [playlist_id])
+
+        # fetch results
+        return dictfetchall(cursor)
+
+
+"""
+@fetchall
+SELECT genre_id
+FROM playlist_genre
+WHERE playlist_id = <playlist_id>
+"""
+def getFilterGenres(playlist_id):
+    with connection.cursor() as cursor:
+
+        # execute query
+        cursor.execute("SELECT genre_id FROM playlist_genre WHERE playlist_id = %s", [playlist_id])
+
+        # fetch results
+        return dictfetchall(cursor)
 
 
 
