@@ -22,14 +22,14 @@ def dictfetchone(cursor):
 
 """
 @fetchall
-SELECT artist_id id, artist_name name
+SELECT id, name
 FROM  artist
-WHERE artist_name LIKE %<search>%
+WHERE name LIKE %<search>%
 LIMIT 50
 """
 def getArtists(search):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT artist_id id, artist_name name FROM artist WHERE artist_name LIKE %s LIMIT 50", [search])
+        cursor.execute("SELECT id, name FROM artist WHERE name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -37,14 +37,14 @@ def getArtists(search):
 
 """
 @fetchall
-SELECT country_id id, country_name name
+SELECT id, name
 FROM country
-WHERE country_name LIKE %<search>%
+WHERE name LIKE %<search>%
 LIMIT 50
 """
 def getCountries(search):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT country_id id, country_name name FROM country WHERE country_name LIKE %s LIMIT 50", [search])
+        cursor.execute("SELECT id, name FROM country WHERE name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -52,14 +52,14 @@ def getCountries(search):
 
 """
 @fetchall
-SELECT genre_id id, genre_name name
+SELECT id, name
 FROM  genre
-WHERE genre_name LIKE %<search>%
+WHERE name LIKE %<search>%
 LIMIT 50
 """
 def getGenres(search):
     with connection.cursor() as cursor:
-        cursor.execute("SELECT genre_id id, genre_name name FROM genre WHERE genre_name LIKE %s LIMIT 50", [search])
+        cursor.execute("SELECT id, name FROM genre WHERE name LIKE %s LIMIT 50", [search])
 
         # fetch results
         return dictfetchall(cursor)
@@ -68,7 +68,7 @@ def getGenres(search):
 
 """
 @fetchall
-SELECT playlist_id, playlist_name, creation_date, description, play_count
+SELECT id, name, creation_date, description, play_count
 FROM playlist
 ORDER BY play_count
 DESC LIMIT <count>
@@ -77,7 +77,7 @@ def getTrending(count):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_id, playlist_name, creation_date, description, play_count FROM playlist ORDER BY play_count DESC LIMIT %s", [count])
+        cursor.execute("SELECT id, name, creation_date, description, play_count FROM playlist ORDER BY play_count DESC LIMIT %s", [count])
 
         # fetch results
         return dictfetchall(cursor)
@@ -85,7 +85,7 @@ def getTrending(count):
 
 """
 @fetchall
-SELECT playlist_id, playlist_name, creation_date, description, play_count
+SELECT id, name, creation_date, description, play_count
 FROM playlist
 ORDER BY creation_date
 DESC LIMIT <count>
@@ -94,7 +94,7 @@ def getNewest(count):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_id, playlist_name, creation_date, description, play_count FROM playlist ORDER BY creation_date DESC LIMIT %s", [count])
+        cursor.execute("SELECT id, name, creation_date, description, play_count FROM playlist ORDER BY creation_date DESC LIMIT %s", [count])
 
         # fetch results
         return dictfetchall(cursor)
@@ -103,14 +103,14 @@ def getNewest(count):
 """
 @fetchall
 SELECT video_id
-FROM playlist_to_video
+FROM playlist_video
 WHERE playlist_id = <playlist_id>
 """
 def getPlaylistVideos(playlist_id):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT video_id FROM  playlist_to_video WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -118,15 +118,15 @@ def getPlaylistVideos(playlist_id):
 
 """
 @fetchone
-SELECT playlist_id, creation_date, description, play_count
+SELECT id, creation_date, description, play_count
 FROM playlist
-WHERE playlist_name = <playlist_name>
+WHERE name = <playlist_name>
 """
 def getPlaylistsByName(playlist_name):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT playlist_id, creation_date, description, play_count FROM playlist WHERE playlist_name LIKE %s", [playlist_name])
+        cursor.execute("SELECT id, creation_date, description, play_count FROM playlist WHERE name LIKE %s", [playlist_name])
 
         # fetch results
         return dictfetchall(cursor)
@@ -136,13 +136,13 @@ def getPlaylistsByName(playlist_name):
 @fetchone
 SELECT *
 FROM playlist
-WHERE playlist_id = <playlist_id>
+WHERE id = <playlist_id>
 """
 def getPlaylistById(playlist_id):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT * FROM playlist WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT * FROM playlist WHERE id = %s", [playlist_id])
 
         # fetch results
         return dictfetchone(cursor)
@@ -151,11 +151,11 @@ def getPlaylistById(playlist_id):
 """
 @update
 UPDATE playlist SET play_count = play_count + 1
-WHERE playlist_id = <playlist_id>
+WHERE id = <playlist_id>
 """
 def incrementHitCount(playlist_id):
     with connection.cursor() as cursor:
-        cursor.execute("UPDATE playlist SET play_count = play_count + 1 WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("UPDATE playlist SET play_count = play_count + 1 WHERE id = %s", [playlist_id])
 
 
 """
@@ -167,9 +167,9 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
     if mode == objects.LOAD_FROM_TABLE:
         # reload playlist from DB
-        print 'loading from playlist_to_video table'
+        print 'loading from playlist_video table'
         with connection.cursor() as cursor:
-            cursor.execute("SELECT video_id FROM playlist_to_video WHERE playlist_id = %s", [playlist.id])
+            cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist.id])
             return cursor.fetchall()
 
     select_data = []
@@ -192,18 +192,18 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
         frompart = ['video']
         wherepart = []
 
-        filtered_videos_selectless = """
-            FROM video, artist, country, artist_genre, genre
-            WHERE video.artist_id = artist.artist_id
-            \tAND artist_genre.artist_id = artist.artist_id
-            \tAND artist_genre.genre_id = genre.genre_id\n"""
+        # filtered_videos_selectless = """
+            # FROM video, artist, country, artist_genre, genre
+            # WHERE video.artist_id = artist.id
+            # \tAND artist_genre.artist_id = artist.id
+            # \tAND artist_genre.genre_id = genre.id\n"""
 
         # conditional appends for genre, countries, artists, decades, freetext
         if len(genreslist) > 0:
             frompart.extend(['artist_genre', 'artist', 'genre'])
-            where = "genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
+            where = "genre.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
             wherepart.append(where)
-            #filtered_videos_selectless += "\t\tAND genre.genre_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
+            #filtered_videos_selectless += "\t\tAND genre.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
             select_data.extend(genreslist)
 
         if len(countrieslist) > 0:
@@ -215,9 +215,9 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
         if len(artistslist) > 0:
             frompart.append('artist')
-            where = "artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
+            where = "artist.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
             wherepart.append(where)
-            #filtered_videos_selectless += "\t\tAND artist.artist_id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
+            #filtered_videos_selectless += "\t\tAND artist.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(artistslist)))
             select_data.extend(artistslist)
 
         if len(decadeslist) > 0:
@@ -235,7 +235,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
         wherepart.extend([
             'video.is_live = %s',
             'video.is_cover = %s',
-            'video.with_lyrics = %s'
+            'video.is_with_lyrics = %s'
         ])
         select_data.extend([playlist.live, playlist.cover, playlist.withlyrics])
 
@@ -247,7 +247,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
         # construct main query
         header = "SELECT DISTINCT filtered_videos.id id FROM"
-        filtered_videos_select = "SELECT @a:=@a+1 AS num, video.video_id AS id"
+        filtered_videos_select = "SELECT @a:=@a+1 AS num, video.id AS id"
         footer = """
             WHERE filtered_videos.num IN   (SELECT *
                                             FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) AS num
@@ -294,13 +294,13 @@ def updateVideoList(playlist_id, video_ids):
         insert_data = [playlist_id]
 
         # part1
-        update_command = """DELETE FROM playlist_to_video
+        update_command = """DELETE FROM playlist_video
                WHERE playlist_id = %s;
                """
 
         # part2 - concatenate all rows to one query
         for video_id in video_ids:
-            update_command += """INSERT INTO playlist_to_video
+            update_command += """INSERT INTO playlist_video
                     (playlist_id, video_id)
                     VALUES (%s, %s);
                     """
@@ -315,7 +315,7 @@ def updateVideoList(playlist_id, video_ids):
 1. Insert to playlist table
 @update
 INSERT INTO playlist
-(playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
+(name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
 VALUES (<p.name>, now, <p.desc>, 0, <p.live>, <p.cover>, <p.withlyrics>, <p.text>)
 
 2. Retrieve playlist ID
@@ -342,7 +342,7 @@ VALUES (LAST_INSERT_ID(), <genre_id>);
 3.4 decades filter
 @update
 INSERT INTO playlist_decade
-(playlist_id, decade)
+(playlist_id, decade_id)
 VALUES (LAST_INSERT_ID(), <decade_id>);
 """
 def createPlaylist(p):
@@ -350,7 +350,7 @@ def createPlaylist(p):
 
         # Q1
         insert_command = """INSERT INTO playlist
-                (playlist_name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
+                (name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
 
@@ -387,7 +387,7 @@ def createPlaylist(p):
         # Q3.4
         for decade in p.decades:
             insert_command = """INSERT INTO playlist_decade
-                    (playlist_id, decade)
+                    (playlist_id, decade_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
             cursor.execute(insert_command, [decade[0]])
@@ -397,7 +397,7 @@ def createPlaylist(p):
 
 """
 @fetchall
-SELECT decade
+SELECT decade_id
 FROM playlist_decade
 WHERE playlist_id = <playlist_id>
 """
@@ -405,7 +405,7 @@ def getFilterDecades(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT decade FROM playlist_decade WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT decade_id FROM playlist_decade WHERE playlist_id = %s", [playlist_id])
 
         # fetch results
         return cursor.fetchall()

@@ -38,7 +38,7 @@ def getTrending(count=4):
 
     # create playlist objects
     for p in res:
-        trending.append(getPlaylistById(p['playlist_id']))
+        trending.append(getPlaylistById(p['id']))
     
     return trending
 
@@ -55,7 +55,7 @@ def getNewest(count=4):
     newest = []
     
     for p in res:
-        playlist = getPlaylistById(p['playlist_id'])
+        playlist = getPlaylistById(p['id'])
         playlist.getElapsed()
         newest.append(playlist)
     

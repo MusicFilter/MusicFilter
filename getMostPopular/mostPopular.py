@@ -16,17 +16,17 @@ cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
 getMostPopularArtist =\
 """
-SELECT artist_name
-FROM Artist
-WHERE Artist_id in
+SELECT name
+FROM artist
+WHERE id in
          (SELECT artist_id
-             FROM PLAYLIST_ARTIST
+             FROM playlist_artist
              GROUP BY artist_id
              HAVING count(playlist_id) >= 
 			(SELECT max(popularity)
 			FROM
 			    (SELECT count(playlist_id) as popularity
-			    FROM PLAYLIST_ARTIST
+			    FROM playlist_artist
 			    GROUP BY artist_id
 			    ) as countPlaylistsPerArtist
 			)
@@ -36,17 +36,17 @@ WHERE Artist_id in
 
 ##getMostPopularGenre =\
 ##"""
-##SELECT genre_name
+##SELECT name
 ##FROM genre
-##WHERE genre_id in
+##WHERE id in
 ##         (SELECT genre_id
-##             FROM PLAYLIST_GENRE
+##             FROM playlist_genre
 ##             GROUP BY genre_id
 ##             HAVING count(playlist_id) >= 
 ##			(SELECT max(popularity)
 ##			FROM
 ##			    (SELECT count(playlist_id) as popularity
-##			    FROM PLAYLIST_GENRE
+##			    FROM playlist_genre
 ##			    GROUP BY genre_id
 ##			    ) as countPlaylistsPerGenre
 ##			)
@@ -55,19 +55,19 @@ WHERE Artist_id in
 
 getMostPopularCountry =\
 """
-SELECT country_name
+SELECT name
 FROM country
-WHERE country.country_id in
+WHERE id in
 
-    (SELECT Artist.country_id
+    (SELECT artist.country_id
         FROM
-            ARTIST, 
+            artist, 
             (SELECT artist_id as aIdBlaBla, count(playlist_id) as numPlaylistArtistAppearsInBlaBla
-            FROM PLAYLIST_ARTIST
+            FROM playlist_artist
             GROUP BY artist_id
             ) as countPlaylistsPerArtistBlaBla
-        WHERE ARTIST.artist_id = aIdBlaBla
-        GROUP BY Artist.country_id
+        WHERE artist.id = aIdBlaBla
+        GROUP BY artist.country_id
         HAVING sum(numPlaylistArtistAppearsInBlaBla) >= 
 
         
@@ -75,13 +75,13 @@ WHERE country.country_id in
           FROM
               (SELECT sum(numPlaylistArtistAppearsIn) as countryPopularity
               FROM
-                  ARTIST, 
+                  artist, 
                   (SELECT artist_id as aId, count(playlist_id) as numPlaylistArtistAppearsIn
-                  FROM PLAYLIST_ARTIST
+                  FROM playlist_artist
                   GROUP BY artist_id
                   ) as countPlaylistsPerArtist
-              WHERE ARTIST.artist_id = aId
-              GROUP BY Artist.country_id
+              WHERE artist.id = aId
+              GROUP BY artist.country_id
               ) as CountryPopularityTable
           )
     )
@@ -105,29 +105,29 @@ WHERE country.country_id in
 
 getMostPopularDecade =\
 """
-SELECT Artist.dominant_decade
+SELECT artist.dominant_decade
         FROM
-            ARTIST, 
+            artist, 
             (SELECT artist_id as aIdBlaBla, count(playlist_id) as numPlaylistArtistAppearsInBlaBla
             FROM PLAYLIST_ARTIST
             GROUP BY artist_id
             ) as countPlaylistsPerArtistBlaBla
-        WHERE ARTIST.artist_id = aIdBlaBla
-        GROUP BY Artist.dominant_decade
+        WHERE artist.id = aIdBlaBla
+        GROUP BY artist.dominant_decade
         HAVING sum(numPlaylistArtistAppearsInBlaBla) >= 
 
         
           (SELECT max(decadePopularity)
           FROM
-              (SELECT Artist.artist_id , sum(numPlaylistArtistAppearsIn) as decadePopularity, Artist.dominant_decade
+              (SELECT artist.id , sum(numPlaylistArtistAppearsIn) as decadePopularity, artist.dominant_decade
               FROM
-                  ARTIST, 
+                  artist, 
                   (SELECT artist_id as aId, count(playlist_id) as numPlaylistArtistAppearsIn
                   FROM PLAYLIST_ARTIST
                   GROUP BY artist_id
                   ) as countPlaylistsPerArtist
-              WHERE ARTIST.artist_id = aId
-              GROUP BY Artist.dominant_decade
+              WHERE artist.id = aId
+              GROUP BY artist.dominant_decade
               ) as DecadePopularityTable
           )
 """
@@ -137,13 +137,13 @@ SELECT Artist.dominant_decade
 cur.execute(getMostPopularArtist)
 result = cur.fetchall()
 for row in result:
-  print row['artist_name']
+  print row['name']
 
 
 ##cur.execute(getMostPopularGenre)
 ##result = cur.fetchall()
 ##for row in result:
-##  print row['genre_name']
+##  print row['name']
 ##
 ##  
 cur.execute(getMostPopularDecade)
@@ -155,6 +155,6 @@ for row in result:
 cur.execute(getMostPopularCountry)
 result = cur.fetchall()
 for row in result:
-  print row['country_name']
+  print row['name']
 
 con.commit()

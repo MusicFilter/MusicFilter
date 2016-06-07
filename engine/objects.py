@@ -10,8 +10,8 @@ class Playlist:
 
     """
     Playlist object
-    self.id = [int] playlist_id from DB
-    self.hits = [int] total_hits from DB
+    self.id = [int] id from DB
+    self.hits = [int] play_count from DB
     self.createdOn = [datetime] creation date from DB
     self.video_list = [list] of [string] youtube video id
     self.name = [string] playlist's name
@@ -88,8 +88,8 @@ def playlistFactory(p_entry, type):
     p = Playlist()
 
     if type == DB_ENTRY:
-        p.id = p_entry['playlist_id']
-        p.name = p_entry['playlist_name']
+        p.id = p_entry['id']
+        p.name = p_entry['name']
         p.createdOn = p_entry['creation_date']
         p.description = p_entry['description']
         p.hits = p_entry['play_count']

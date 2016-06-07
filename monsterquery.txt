@@ -1,10 +1,10 @@
 SET @a = 0;
 SET @videonum = (SELECT COUNT(*) FROM video WHERE video.is_live = 0
         AND video.is_cover = 0
-        AND video.with_lyrics = 0);
+        AND video.is_with_lyrics = 0);
 SELECT DISTINCT filtered_videos.id id FROM (SELECT @a:=@a+1 AS num, video.video_id AS id FROM video WHERE video.is_live = 0
         AND video.is_cover = 0
-        AND video.with_lyrics = 0) as filtered_videos
+        AND video.is_with_lyrics = 0) as filtered_videos
             WHERE filtered_videos.num IN   (SELECT *
                                             FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) num
                                                      FROM video
