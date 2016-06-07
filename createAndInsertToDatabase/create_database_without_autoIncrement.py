@@ -54,7 +54,6 @@ create_artist_table = """
                           name VARCHAR(255),
                           dominant_decade YEAR,
                           country_id INT UNSIGNED,
-                          is_band BOOLEAN NOT NULL,
                           PRIMARY KEY (id),
                           FOREIGN KEY (country_id)
                               REFERENCES country(id)

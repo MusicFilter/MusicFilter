@@ -23,9 +23,9 @@ def insertVideo(VideoDict):
         
 def insertArtist(ArtistDict):
     cur.execute(
-        """INSERT INTO artist (id, name, dominant_decade, country_id, is_band)
-            VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE id=id;""",(ArtistDict['id'],
-            ArtistDict['name'], ArtistDict['dominant_decade'],ArtistDict['country_id'], ArtistDict['is_band'])
+        """INSERT INTO artist (id, name, dominant_decade, country_id)
+            VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE id=id;""",(ArtistDict['id'],
+            ArtistDict['name'], ArtistDict['dominant_decade'],ArtistDict['country_id'])
     )
     con.commit()
 

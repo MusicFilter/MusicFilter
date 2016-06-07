@@ -265,7 +265,6 @@ def get_artist_details(artist_id):
 
     artist_details['id'] = artist_id
     artist_details['name'] = wikidata_label(artist)
-    artist_details['is_band'] = artist_is_band(artist)
     artist_details['dominant_decade'] = artist_decade(artist)
     if artist_details['country'] is not None:
         artist_details['country_id'] = artist_details['country']['id']
