@@ -261,7 +261,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
             WHERE filtered_videos.num IN   (SELECT *
                                             FROM    (SELECT FLOOR((@videonum * RAND()) + 1) AS num
                                                      FROM video
-                                                     LIMIT 110)
+                                                     LIMIT 1000)
                                             AS random)
             LIMIT 100;
         """
