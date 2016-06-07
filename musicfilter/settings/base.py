@@ -22,8 +22,6 @@ SECRET_KEY = 's%w(9(^y8!s$kan$&q#=&c1gvr3q6mw4@6ehq7(zfpc7=l0qx$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 
 
@@ -97,3 +95,5 @@ TEMPLATES = [
         },
     },
 ]
+
+MIGRATION_MODULES = {app[app.rfind('.') + 1:]: None for app in INSTALLED_APPS}
