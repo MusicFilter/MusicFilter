@@ -34,24 +34,42 @@ WHERE id in
 """
 
 
-##getMostPopularGenre =\
-##"""
-##SELECT name
-##FROM genre
-##WHERE id in
-##         (SELECT genre_id
-##             FROM playlist_genre
-##             GROUP BY genre_id
-##             HAVING count(playlist_id) >= 
-##			(SELECT max(popularity)
-##			FROM
-##			    (SELECT count(playlist_id) as popularity
-##			    FROM playlist_genre
-##			    GROUP BY genre_id
-##			    ) as countPlaylistsPerGenre
-##			)
-##	)
-##"""
+getMostPopularGenre =\
+"""
+SELECT genre_name
+FROM GENRE
+WHERE genre_id in
+          (SELECT genre_id
+          FROM
+              (SELECT artist_id, numPlaylistArtistAppearsInBlaBla, genre_id
+              FROM ARTIST_GENRE,
+                  (SELECT artist_id as aIdBlaBla, count(playlist_id) as numPlaylistArtistAppearsInBlaBla
+                  FROM PLAYLIST_ARTIST
+                  GROUP BY artist_id
+                  ) as countPlaylistsPerArtistBlaBla
+              WHERE aIdBlaBla = ARTIST_GENRE.artist_id
+              ) as whateverBlaBla
+          GROUP BY genre_id    
+          HAVING sum(numPlaylistArtistAppearsInBlaBla) >=
+      
+                    (SELECT max(genrePopularity)
+                    FROM
+                        (SELECT genre_id, sum(numPlaylistArtistAppearsIn) as genrePopularity
+                        FROM
+                          (SELECT artist_id, numPlaylistArtistAppearsIn, genre_id
+                                  FROM ARTIST_GENRE,
+                                      (SELECT artist_id as aId, count(playlist_id) as numPlaylistArtistAppearsIn
+                                      FROM PLAYLIST_ARTIST
+                                      GROUP BY artist_id
+                                      ) as countPlaylistsPerArtist
+                                  WHERE aId = ARTIST_GENRE.artist_id
+                          ) as whatever
+                        GROUP BY genre_id    
+                        ) as GenrePopularityTable
+                    )
+          )
+"""
+
 
 getMostPopularCountry =\
 """
@@ -140,12 +158,12 @@ for row in result:
   print row['name']
 
 
-##cur.execute(getMostPopularGenre)
-##result = cur.fetchall()
-##for row in result:
-##  print row['name']
-##
-##  
+cur.execute(getMostPopularGenre)
+result = cur.fetchall()
+for row in result:
+  print row['name']
+
+  
 cur.execute(getMostPopularDecade)
 result = cur.fetchall()
 for row in result:
