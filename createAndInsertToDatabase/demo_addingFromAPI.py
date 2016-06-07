@@ -14,34 +14,34 @@ cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
 def insertVideo(VideoDict):
     cur.execute(
-        """INSERT INTO video (id, title, description, artist_id,
-                                    is_cover, is_live, is_with_lyrics)
-                VALUES (%s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE id=id;""",(VideoDict['id'], VideoDict['title'],
-                VideoDict['description'], VideoDict['artist_id'], VideoDict['is_cover'], VideoDict['is_live'], VideoDict['is_with_lyrics'])
+        """INSERT INTO video (video_id, title, description, artist_id,
+                                    is_cover, is_live, with_lyrics)
+                VALUES (%s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE video_id=video_id;""",(VideoDict['video_id'], VideoDict['title'],
+                VideoDict['description'],VideoDict['artist_id'], VideoDict['is_cover'], VideoDict['is_live'], VideoDict['with_lyrics'])
         )
     con.commit()
         
 def insertArtist(ArtistDict):
     cur.execute(
-        """INSERT INTO artist (id, name, dominant_decade, country_id, is_band)
-            VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE id=id;""",(ArtistDict['id'],
-            ArtistDict['name'], ArtistDict['dominant_decade'],ArtistDict['country_id'], ArtistDict['is_band'])
+        """INSERT INTO artist (artist_id, artist_name,dominant_decade,  country_id, is_band)
+            VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE artist_id=artist_id;""",(ArtistDict['artist_id'],
+            ArtistDict['artist_name'], ArtistDict['dominant_decade'],ArtistDict['country_id'], ArtistDict['is_band'])
     )
     con.commit()
 
 def insertGenre(GenreDict):
     cur.execute(
-        """INSERT INTO genre (id, name)
-            VALUES (%s, %s) ON DUPLICATE KEY UPDATE id=id;""",(GenreDict['id'], GenreDict['name'])
+        """INSERT INTO genre (genre_id, genre_name)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE genre_id=genre_id;""",(GenreDict['genre_id'], GenreDict['genre_name'])
     )
     con.commit()
 
 def insertPlaylist(PlaylistDict):
     cur.execute(
-            """INSERT INTO playlist (id, name,
+            """INSERT INTO playlist (playlist_id, playlist_name,
                             creation_date, description,
                 play_count, is_live, is_cover, is_with_lyrics, free_text)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",(PlaylistDict['id'], PlaylistDict['name'], PlaylistDict['creation_date'], PlaylistDict['description'], PlaylistDict['play_count'], PlaylistDict['is_live'], PlaylistDict['is_cover'], PlaylistDict['is_with_lyrics'], PlaylistDict['free_text'])
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);""",(PlaylistDict['playlist_id'],PlaylistDict['playlist_name'], PlaylistDict['creation_date'],PlaylistDict['description'], PlaylistDict['play_count'],PlaylistDict['is_live'],PlaylistDict['is_cover'],PlaylistDict['is_with_lyrics'],PlaylistDict['free_text'])
             )
     con.commit()
 
@@ -75,14 +75,14 @@ def insertPlaylistCountry(PlaylistCountryDict):
 
 def insertPlaylistDecade(PlaylistDecadeDict):
     cur.execute(
-        """INSERT INTO playlist_decade (playlist_id, decade_id)
-            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, decade_id=decade_id;""",(PlaylistDecadeDict['playlist_id'], PlaylistDecadeDict['decade_id'])
+        """INSERT INTO playlist_decade (playlist_id, decade)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE playlist_id=playlist_id, decade=decade;""",(PlaylistDecadeDict['playlist_id'], PlaylistDecadeDict['decade'])
         )
     con.commit()
 
 def insertCountry(CountryDict):
     cur.execute(
-        """INSERT INTO country (id, name)
-            VALUES (%s, %s) ON DUPLICATE KEY UPDATE id=id;""",(CountryDict['id'], CountryDict['name'])
+        """INSERT INTO country (country_id, country_name)
+            VALUES (%s, %s) ON DUPLICATE KEY UPDATE country_id=country_id;""",(CountryDict['country_id'], CountryDict['country_name'])
     )
     con.commit()

@@ -191,6 +191,7 @@ def find(request):
 
     if search:
         playlists = backendInterface.getPlaylistsByName(search)
+        print playlists
 
     return HttpResponse(
         json.dumps(playlists),

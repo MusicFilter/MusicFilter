@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# import warnings
+import warnings
 import MySQLdb as mdb
 from password import *
-from textwrap import dedent
 
-# warnings.filterwarnings("ignore", "unknown table.*")
+warnings.filterwarnings("ignore", "unknown table.*")
 
 con = mdb.connect('localhost', 'root', getPassword(), 'musicfilter', use_unicode=True, charset='utf8')
 
@@ -14,130 +13,80 @@ cur = con.cursor(mdb.cursors.DictCursor)
 
 cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
-# cur.execute("SET FOREIGN_KEY_CHECKS=0")
+cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
-cur.execute("DROP TABLE IF EXISTS playlist_video")
-cur.execute("DROP TABLE IF EXISTS playlist_artist")
-cur.execute("DROP TABLE IF EXISTS playlist_genre")
-cur.execute("DROP TABLE IF EXISTS playlist_country")
-cur.execute("DROP TABLE IF EXISTS playlist_decade")
-cur.execute("DROP TABLE IF EXISTS playlist")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_TO_VIDEO")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_ARTIST")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_GENRE")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_COUNTRY")
+cur.execute("DROP TABLE IF EXISTS PLAYLIST_DECADE")
 
 cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
-create_playlist_table = """
-                        CREATE TABLE playlist (
-                            id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                            name VARCHAR(60) NOT NULL,
-                            creation_date TIMESTAMP NOT NULL,
-                            description VARCHAR(1000) NOT NULL,
-                            play_count INT UNSIGNED NOT NULL,
-                            is_live BOOLEAN NOT NULL,
-                            is_cover BOOLEAN NOT NULL,
-                            is_with_lyrics BOOLEAN NOT NULL,
-                            free_text VARCHAR(255),
-                            PRIMARY KEY (id)
-                        )
-                        """
-
-print dedent(create_playlist_table)
+create_playlist_table = """CREATE TABLE PLAYLIST(
+						playlist_id INT PRIMARY KEY AUTO_INCREMENT,
+						playlist_name CHAR(30),
+						creation_date TIMESTAMP,
+						description CHAR(100),
+						play_count INT,
+						is_live BOOLEAN,
+						is_cover BOOLEAN,
+						is_with_lyrics BOOLEAN,
+						free_text CHAR(100))"""
 
 cur.execute(create_playlist_table)
 
-create_playlist_video_table = """
-                              CREATE TABLE playlist_video (
-                                  playlist_id INT UNSIGNED NOT NULL,
-                                  video_id CHAR(11) NOT NULL,
-                                  PRIMARY KEY (playlist_id, video_id),
-                                  FOREIGN KEY (playlist_id)
-                                      REFERENCES playlist(id)
-                                      ON DELETE CASCADE
-                                      ON UPDATE CASCADE,
-                                  FOREIGN KEY (video_id)
-                                      REFERENCES video(id)
-                                      ON DELETE CASCADE
-                                      ON UPDATE CASCADE
-                              )
-                              """
+create_playlistToVideo_table = """CREATE TABLE PLAYLIST_TO_VIDEO(
+						playlist_id INT,
+						video_id CHAR(11),
+						PRIMARY KEY (playlist_id, video_id),
+						FOREIGN KEY (video_id)
+							REFERENCES  VIDEO(video_id)
+							ON DELETE CASCADE,
+						FOREIGN KEY (playlist_id)
+							REFERENCES  PLAYLIST(playlist_id)
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,video_id))"""
 
-print dedent(create_playlist_video_table)
+cur.execute(create_playlistToVideo_table)
 
-cur.execute(create_playlist_video_table)
+create_playlistArtist_table = """CREATE TABLE PLAYLIST_ARTIST(
+						playlist_id INT,
+						artist_id INT,
+						FOREIGN KEY (artist_id)
+							REFERENCES  ARTIST(artist_id)
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,artist_id))"""
 
-create_playlist_artist_table = """
-                               CREATE TABLE playlist_artist (
-                                   playlist_id INT UNSIGNED NOT NULL,
-                                   artist_id INT UNSIGNED NOT NULL,
-                                   PRIMARY KEY (playlist_id, artist_id),
-                                   FOREIGN KEY (playlist_id)
-                                       REFERENCES playlist(id)
-                                       ON DELETE CASCADE
-                                       ON UPDATE CASCADE,
-                                   FOREIGN KEY (artist_id)
-                                       REFERENCES artist(id)
-                                       ON DELETE CASCADE
-                                       ON UPDATE CASCADE
-                               )
-                               """
+cur.execute(create_playlistArtist_table)
 
-print dedent(create_playlist_artist_table)
+create_playlistGenre_table = """CREATE TABLE PLAYLIST_GENRE(
+						playlist_id INT,
+						genre_id INT,
+						FOREIGN KEY (genre_id)
+							REFERENCES  GENRE(genre_id)
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,genre_id))"""
 
-cur.execute(create_playlist_artist_table)
+cur.execute(create_playlistGenre_table)
 
-create_playlist_genre_table = """
-                              CREATE TABLE playlist_genre (
-                                  playlist_id INT UNSIGNED NOT NULL,
-                                  genre_id INT UNSIGNED NOT NULL,
-                                  PRIMARY KEY (playlist_id, genre_id),
-                                  FOREIGN KEY (playlist_id)
-                                      REFERENCES playlist(id)
-                                      ON DELETE CASCADE
-                                      ON UPDATE CASCADE,
-                                  FOREIGN KEY (genre_id)
-                                      REFERENCES genre(id)
-                                      ON DELETE CASCADE
-                                      ON UPDATE CASCADE
-                              )
-                              """
+create_playlistCountry_table = """CREATE TABLE PLAYLIST_COUNTRY(
+						playlist_id INT,
+						country_id INT,
+						FOREIGN KEY (country_id)
+							REFERENCES  COUNTRY(country_id)
+							ON DELETE CASCADE,
+						UNIQUE (playlist_id,country_id))"""
 
-print dedent(create_playlist_genre_table)
+cur.execute(create_playlistCountry_table)
 
-cur.execute(create_playlist_genre_table)
+create_playlistDecade_table = """CREATE TABLE PLAYLIST_DECADE(
+						playlist_id INT,
+						decade INT,
+						UNIQUE (playlist_id,decade))"""
 
-create_playlist_country_table = """
-                                CREATE TABLE playlist_country (
-                                    playlist_id INT UNSIGNED NOT NULL,
-                                    country_id INT UNSIGNED NOT NULL,
-                                    PRIMARY KEY (playlist_id, country_id),
-                                    FOREIGN KEY (playlist_id)
-                                        REFERENCES playlist(id)
-                                        ON DELETE CASCADE
-                                        ON UPDATE CASCADE,
-                                    FOREIGN KEY (country_id)
-                                        REFERENCES country(id)
-                                        ON DELETE CASCADE
-                                        ON UPDATE CASCADE
-                                )
-                                """
-
-print dedent(create_playlist_country_table)
-
-cur.execute(create_playlist_country_table)
-
-create_playlist_decade_table = """
-                               CREATE TABLE playlist_decade (
-                                   playlist_id INT UNSIGNED NOT NULL,
-                                   decade_id INT UNSIGNED NOT NULL,
-                                   PRIMARY KEY (playlist_id, decade_id),
-                                   FOREIGN KEY (playlist_id)
-                                       REFERENCES playlist(id)
-                                       ON DELETE CASCADE
-                                       ON UPDATE CASCADE
-                               )
-                               """
-
-print dedent(create_playlist_decade_table)
-
-cur.execute(create_playlist_decade_table)
+cur.execute(create_playlistDecade_table)
 
 con.close()
+

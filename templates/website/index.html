@@ -85,7 +85,7 @@
             	<div class="col-md-12">
             		<select name="by-name" id="by-name" data-width="90%" title="Start typing..." class="selectpicker filter" data-size="5" data-live-search="true">
 					</select>
-					<a id="listen" href="player/" class="btn btn-light">Listen</a>
+					<a id="listen-button" href="player/" class="btn btn-light">Listen</a>
 					<br><br>
 					<br><br>
 				</div>
@@ -239,12 +239,6 @@
                     	<fieldset class="form-group col-md-3">
                     		<label for="genre">Choose your genres...</label>
 						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
-<<<<<<< HEAD
-							{% for item in genres %}
-							  	<option value="{{ item.id }}:{{ item.name }}">{{ item.name|title }}</option>
-                            {% endfor %}
-=======
->>>>>>> origin/master
 							</select>
 						</fieldset>
 						
@@ -402,7 +396,7 @@
 	    $('select').trigger('change');
 	    
 	    $('#by-name').on('changed.bs.select', function (e) {
-	    	  $("#listen").attr("href", "/player/" + e.value);
+	    	  $("#listen-button").attr("href", "/player/" + $(this).val().split(":")[0]);
 	    });
 
     	// Fix submit button on startup
