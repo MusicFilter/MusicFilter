@@ -179,7 +179,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
     genreslist = [int(x[0]) for x in playlist.genres]
     countrieslist = [int(x[0]) for x in playlist.countries]
     artistslist = [int(x[0]) for x in playlist.artists]
-    decadeslist = [int(x[0]) for x in playlist.decades]
+    decadeslist = [int(x) for x in playlist.decades]
     string_freetext = '%' + playlist.text + '%'
 
     # Here comes a big composite query that first generates new videos according to filter
@@ -202,7 +202,11 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
         if len(genreslist) > 0:
             frompart.extend(['artist_genre', 'artist', 'genre'])
             where = "genre.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
+            where_join1 = "artist.id = artist_genre.artist_id\n"
+            where_join2 = "genre.id = artist_genre.genre_id\n"
             wherepart.append(where)
+            wherepart.append(where_join1)
+            wherepart.append(where_join2)
             #filtered_videos_selectless += "\t\tAND genre.id IN (%s)\n" % ', '.join('%s' for i in xrange(len(genreslist)))
             select_data.extend(genreslist)
 
@@ -226,6 +230,11 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
             wherepart.append(where)
             #filtered_videos_selectless += "\t\tAND artist.dominant_decade IN (%s)\n" % ', '.join('%s' for i in xrange(len(decadeslist)))
             select_data.extend(decadeslist)
+            
+        # If we reached here and wherepart is not empty, it means there was a filter from artist table
+        if len(wherepart) > 0:
+            where = "video.artist_id = artist.id\n"
+            wherepart.append(where)
 
         if len(playlist.text) > 0:
             wherepart.append("(video.title LIKE %s OR video.description LIKE %s)")
@@ -250,7 +259,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
         filtered_videos_select = "SELECT @a:=@a+1 AS num, video.id AS id"
         footer = """
             WHERE filtered_videos.num IN   (SELECT *
-                                            FROM    (SELECT FLOOR(((@videonum) + 1) * RAND()) AS num
+                                            FROM    (SELECT FLOOR((@videonum * RAND()) + 1) AS num
                                                      FROM video
                                                      LIMIT 110)
                                             AS random)
@@ -264,6 +273,10 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
         # assemble monster query
         query = '{0} {1}'.format(count_query, main_query)
+        
+        print query
+        print frompart
+        print fromstring
 
         # execute query
         try:
@@ -390,7 +403,7 @@ def createPlaylist(p):
                     (playlist_id, decade_id)
                     VALUES (LAST_INSERT_ID(), %s);
                     """
-            cursor.execute(insert_command, [decade[0]])
+            cursor.execute(insert_command, [decade])
 
         return playlist_id
 

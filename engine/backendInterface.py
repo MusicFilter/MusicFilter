@@ -186,7 +186,7 @@ def buildDescription(postdict):
     string_genres = ', '.join(str(x[1]) for x in postdict['genres'])
     string_countries = ', '.join(str(x[1]) for x in postdict['countries'])
     string_artists = ', '.join(str(x[1]) for x in postdict['artists'])
-    string_decades = ', '.join(str(x[1]) for x in postdict['decades'])
+    string_decades = ', '.join(str(x) + 's' for x in postdict['decades'])
     string_freetext = ''
         
     if string_artists != "":
@@ -202,7 +202,7 @@ def buildDescription(postdict):
         string_countries = " from " + string_countries
         
     if postdict['text'] != "":
-        string_freetext = " that have " + postdict['text'] + " in the title, "
+        string_freetext = " that have " + postdict['text'] + " in the title "
         
     return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)

@@ -101,7 +101,8 @@ def generator(request):
         
         decades = []
         for decade in request.POST.getlist('decade'):
-            decades.append(tuple(decade.split(':')))
+            #decades.append(tuple(decade.split(':')))
+            decades.append(decade[:-1])
         postdict['decades'] = decades
               
         if (request.POST.get('live') == 'on'):
