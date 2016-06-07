@@ -126,7 +126,7 @@ def getPlaylistsByName(playlist_name):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT id, creation_date, description, play_count FROM playlist WHERE name LIKE %s", [playlist_name])
+        cursor.execute("SELECT id, name FROM playlist WHERE name LIKE %s", [playlist_name])
 
         # fetch results
         return dictfetchall(cursor)
@@ -285,7 +285,6 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 """
 @update
 Update video list by playlist_id
-
 Part1 deletes current videos associated to playlist_id
 Part2 inserts given video_ids to DB
 """
@@ -317,28 +316,23 @@ def updateVideoList(playlist_id, video_ids):
 INSERT INTO playlist
 (name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
 VALUES (<p.name>, now, <p.desc>, 0, <p.live>, <p.cover>, <p.withlyrics>, <p.text>)
-
 2. Retrieve playlist ID
-
 3. Insert playlist's filters
 3.1 artists filter
 @update
 INSERT INTO playlist_artist
 (playlist_id, artist_id)
 VALUES (LAST_INSERT_ID(), <artist_id>)
-
 3.2 countries filter
 @update
 INSERT INTO playlist_country
 (playlist_id, country_id)
 VALUES (LAST_INSERT_ID(), <country_id>)
-
 3.3 genres filter
 @update
 INSERT INTO playlist_genre
 (playlist_id, genre_id)
 VALUES (LAST_INSERT_ID(), <genre_id>);
-
 3.4 decades filter
 @update
 INSERT INTO playlist_decade
@@ -457,7 +451,5 @@ def getFilterGenres(playlist_id):
 
         # fetch results
         return cursor.fetchall()
-
-
 
 

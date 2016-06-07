@@ -69,8 +69,6 @@ Get playlist object by its playlist_name filed
 """
 def getPlaylistsByName(playlist_name):
     playlist = dbaccess.getPlaylistsByName("%" + playlist_name + "%")
-    updateFilters(playlist)
-
     return playlist
 
 
