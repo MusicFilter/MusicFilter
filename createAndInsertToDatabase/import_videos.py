@@ -18,6 +18,9 @@ QUOTA_EXCEEDED_WAIT = 600
 
 CONNECTION_ERROR_WAIT = 60
 
+HTTP_STATUS_CODE_OK = 200
+HTTP_STATUS_CODE_INTERNAL_SERVER_ERROR = 500
+
 WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -89,7 +92,10 @@ WIKIDATA_ENTITIES = {}
 
 def wdqs_query(query):
     service_url = "https://query.wikidata.org/sparql"
-    r = requests.get(service_url, {'query': query, 'format': 'json'})
+    status_code = HTTP_STATUS_CODE_INTERNAL_SERVER_ERROR
+    while status_code != HTTP_STATUS_CODE_OK:
+        r = requests.get(service_url, {'query': query, 'format': 'json'})
+        status_code = r.status_code
     return json.loads(r.text)
 
 def wikidata_entity(wikidata_id):
@@ -283,18 +289,7 @@ def select_artists():
 
     return artists
 
-def build_database(only_new_artists=True):
-    print "Selecting artists...",
-    artist_ids = select_artists()
-    print "DONE"
-    print
-
-    if only_new_artists:
-        cur.execute("SELECT id FROM artist")
-        artist_ids_from_db = [artist['id'] for artist in cur.fetchall()]
-        artist_ids = list(set(artist_ids) - set(artist_ids_from_db))
-
-    for artist_id in artist_ids:
+def process_artist(artist_id):
         print "Getting details for artist %d..." % artist_id,
         artist_details = None
         while artist_details is None:
@@ -321,6 +316,20 @@ def build_database(only_new_artists=True):
             print "Inserting video %s..." % video['id'],
             insertVideo(video)
             print "DONE"
+
+def build_database(only_new_artists=True):
+    print "Selecting artists...",
+    artist_ids = select_artists()
+    print "DONE"
+    print
+
+    if only_new_artists:
+        cur.execute("SELECT id FROM artist")
+        artist_ids_from_db = [artist['id'] for artist in cur.fetchall()]
+        artist_ids = list(set(artist_ids) - set(artist_ids_from_db))
+
+    for artist_id in artist_ids:
+        process_artist(artist_id)
         print
 
 if __name__ == '__main__':
