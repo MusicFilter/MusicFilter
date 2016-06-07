@@ -22,7 +22,6 @@ WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
     PREFIX wikibase: <http://wikiba.se/ontology#>
-
 """
 
 # P31: instance of
@@ -31,14 +30,11 @@ WDQS_PREFIXES = """
 # P646: Freebase ID
 # Q177220: singer
 # Q215380: band
-# Q488205: singer-songwriter
 SELECT_ARTISTS_WITH_SINGLE_FREEBASE_ID = WDQS_PREFIXES + """
     SELECT ?item WHERE {
         ?item wdt:P646 ?freebaseId .
         { SELECT DISTINCT ?item WHERE {
             { ?item wdt:P106 wd:Q177220 . }
-            UNION
-            { ?item wdt:P106 wd:Q488205 . }
             UNION
             { ?item wdt:P31 wd:Q215380. }
             UNION
