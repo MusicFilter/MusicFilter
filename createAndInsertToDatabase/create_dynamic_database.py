@@ -16,12 +16,12 @@ cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
 # cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
-cur.execute("DROP TABLE IF EXISTS playlist")
 cur.execute("DROP TABLE IF EXISTS playlist_video")
 cur.execute("DROP TABLE IF EXISTS playlist_artist")
 cur.execute("DROP TABLE IF EXISTS playlist_genre")
 cur.execute("DROP TABLE IF EXISTS playlist_country")
-cur.execute("DROP TABLE IF EXISTS plasylist_decade")
+cur.execute("DROP TABLE IF EXISTS playlist_decade")
+cur.execute("DROP TABLE IF EXISTS playlist")
 
 cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
@@ -54,7 +54,7 @@ create_playlist_video_table = """
                                       ON DELETE CASCADE
                                       ON UPDATE CASCADE,
                                   FOREIGN KEY (video_id)
-                                      REFERENCES VIDEO(id)
+                                      REFERENCES video(id)
                                       ON DELETE CASCADE
                                       ON UPDATE CASCADE
                               )

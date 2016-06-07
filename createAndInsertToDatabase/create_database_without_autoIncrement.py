@@ -16,11 +16,10 @@ cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
 # cur.execute("SET FOREIGN_KEY_CHECKS=0")
 
+cur.execute("DROP TABLE IF EXISTS artist_genre")
 cur.execute("DROP TABLE IF EXISTS video")
-cur.execute("DROP TABLE IF EXISTS song")
 cur.execute("DROP TABLE IF EXISTS artist")
 cur.execute("DROP TABLE IF EXISTS genre")
-cur.execute("DROP TABLE IF EXISTS artist_genre")
 cur.execute("DROP TABLE IF EXISTS country")
 
 cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
@@ -96,7 +95,7 @@ create_video_table = """
                          artist_id INT UNSIGNED,
                          is_cover BOOLEAN NOT NULL,
                          is_live BOOLEAN NOT NULL,
-                         with_lyrics BOOLEAN NOT NULL,
+                         is_with_lyrics BOOLEAN NOT NULL,
                          PRIMARY KEY (id),
                          FOREIGN KEY (artist_id)
                              REFERENCES artist(id)
