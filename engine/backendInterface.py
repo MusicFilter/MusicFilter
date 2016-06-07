@@ -202,7 +202,7 @@ def buildDescription(postdict):
         string_countries = " from " + string_countries
         
     if postdict['text'] != "":
-        string_freetext = " that have " + postdict['text'] + " in the title, "
+        string_freetext = " that have " + postdict['text'] + " in the title "
         
     return 'Listening to {0}videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
