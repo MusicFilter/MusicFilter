@@ -22,6 +22,7 @@ WDQS_PREFIXES = """
     PREFIX wd: <http://www.wikidata.org/entity/>
     PREFIX wdt: <http://www.wikidata.org/prop/direct/>
     PREFIX wikibase: <http://wikiba.se/ontology#>
+
 """
 
 # P31: instance of
@@ -30,11 +31,14 @@ WDQS_PREFIXES = """
 # P646: Freebase ID
 # Q177220: singer
 # Q215380: band
+# Q488205: singer-songwriter
 SELECT_ARTISTS_WITH_SINGLE_FREEBASE_ID = WDQS_PREFIXES + """
     SELECT ?item WHERE {
         ?item wdt:P646 ?freebaseId .
         { SELECT DISTINCT ?item WHERE {
             { ?item wdt:P106 wd:Q177220 . }
+            UNION
+            { ?item wdt:P106 wd:Q488205 . }
             UNION
             { ?item wdt:P31 wd:Q215380. }
             UNION
@@ -168,12 +172,12 @@ def artist_videos(artist):
 
     for search_result in search_results:
         video_details = {}
-        video_details['video_id'] = search_result['id']['videoId']
+        video_details['id'] = search_result['id']['videoId']
         video_details['title'] = search_result["snippet"]["title"]
         video_details['description'] = search_result["snippet"]["description"]
         video_details['is_cover'] = int("cover" in search_result["snippet"]["title"].lower())
         video_details['is_live'] = int("live" in search_result["snippet"]["title"].lower())
-        video_details['with_lyrics'] = int("lyrics" in search_result["snippet"]["title"].lower())
+        video_details['is_with_lyrics'] = int("lyrics" in search_result["snippet"]["title"].lower())
         video_details['artist_id'] = artist_wikidata_id
 
         videos.append(video_details)
@@ -204,8 +208,7 @@ def artist_genres(artist):
     top_genre_ids = genre_ids_to_top_genre_ids(genre_ids)
 
     for top_genre_id in top_genre_ids:
-        genres.append({'genre_id': top_genre_id,
-                       'genre_name': wikidata_label(memoized_wikidata_entity(top_genre_id))})
+        genres.append({'id': top_genre_id, 'name': wikidata_label(memoized_wikidata_entity(top_genre_id))})
 
     return genres
 
@@ -231,7 +234,7 @@ def artist_country(artist):
     country_id = countries[0]
     country = memoized_wikidata_entity(country_id)
 
-    return {'country_id': country_id, 'country_name': wikidata_label(country)}
+    return {'id': country_id, 'name': wikidata_label(country)}
 
 def artist_decade(artist):
     artist_id = wikidata_entity_string_to_id(artist['id'])
@@ -260,12 +263,12 @@ def get_artist_details(artist_id):
     artist_details['genres'] = artist_genres(artist)
     artist_details['videos'] = artist_videos(artist)
 
-    artist_details['artist_id'] = artist_id
-    artist_details['artist_name'] = wikidata_label(artist)
+    artist_details['id'] = artist_id
+    artist_details['name'] = wikidata_label(artist)
     artist_details['is_band'] = artist_is_band(artist)
     artist_details['dominant_decade'] = artist_decade(artist)
     if artist_details['country'] is not None:
-        artist_details['country_id'] = artist_details['country']['country_id']
+        artist_details['country_id'] = artist_details['country']['id']
     else:
         artist_details['country_id'] = None
 
@@ -288,8 +291,8 @@ def build_database(only_new_artists=True):
     print
 
     if only_new_artists:
-        cur.execute("SELECT artist_id FROM artist")
-        artist_ids_from_db = [artist['artist_id'] for artist in cur.fetchall()]
+        cur.execute("SELECT id FROM artist")
+        artist_ids_from_db = [artist['id'] for artist in cur.fetchall()]
         artist_ids = list(set(artist_ids) - set(artist_ids_from_db))
 
     for artist_id in artist_ids:
@@ -305,18 +308,18 @@ def build_database(only_new_artists=True):
         insertArtist(artist_details)
         print "DONE"
         if artist_details['country'] is not None:
-            print "Inserting country %d..." % artist_details['country']['country_id'],
+            print "Inserting country %d..." % artist_details['country']['id'],
             insertCountry(artist_details['country'])
             print "DONE"
         for genre in artist_details['genres']:
-            print "Inserting genre %d..." % genre['genre_id'],
+            print "Inserting genre %d..." % genre['id'],
             insertGenre(genre)
             print "DONE"
-            print "Inserting artist-genre %d-%d..." % (artist_id, genre['genre_id']),
-            insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['genre_id']})
+            print "Inserting artist-genre %d-%d..." % (artist_id, genre['id']),
+            insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['id']})
             print "DONE"
         for video in artist_details['videos']:
-            print "Inserting video %s..." % video['video_id'],
+            print "Inserting video %s..." % video['id'],
             insertVideo(video)
             print "DONE"
         print
