@@ -49,22 +49,22 @@ def player(request, playlist_id, action=None):
     else:
             
         if action == 'reshuffle':
+            p.video_list = backendInterface.loadVideos(p, commit=False)
             p.reshuffle()
             
         elif action == 'refresh':
-            backendInterface.reloadVideos(p)
+            p.video_list = backendInterface.loadVideos(p, commit=True)
     
         # update hit count
         else:
             backendInterface.incrementHitCount(playlist_id)
             p.hits += 1
+            p.video_list = backendInterface.loadVideos(p, commit=False)
 
         context = {
             'playlist': p,
             'action': action
         }
-
-        print p.video_list
 
     return render(request, 'player.html', context)
 
@@ -191,7 +191,6 @@ def find(request):
 
     if search:
         playlists = backendInterface.getPlaylistsByName(search)
-        print playlists
 
     return HttpResponse(
         json.dumps(playlists),
