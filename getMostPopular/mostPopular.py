@@ -36,18 +36,18 @@ WHERE id in
 
 getMostPopularGenre =\
 """
-SELECT genre_name
-FROM GENRE
-WHERE genre_id in
+SELECT name
+FROM genre
+WHERE id in
           (SELECT genre_id
           FROM
               (SELECT artist_id, numPlaylistArtistAppearsInBlaBla, genre_id
-              FROM ARTIST_GENRE,
+              FROM artist_genre,
                   (SELECT artist_id as aIdBlaBla, count(playlist_id) as numPlaylistArtistAppearsInBlaBla
-                  FROM PLAYLIST_ARTIST
+                  FROM playlist_artist
                   GROUP BY artist_id
                   ) as countPlaylistsPerArtistBlaBla
-              WHERE aIdBlaBla = ARTIST_GENRE.artist_id
+              WHERE aIdBlaBla = artist_genre.artist_id
               ) as whateverBlaBla
           GROUP BY genre_id    
           HAVING sum(numPlaylistArtistAppearsInBlaBla) >=
@@ -57,12 +57,12 @@ WHERE genre_id in
                         (SELECT genre_id, sum(numPlaylistArtistAppearsIn) as genrePopularity
                         FROM
                           (SELECT artist_id, numPlaylistArtistAppearsIn, genre_id
-                                  FROM ARTIST_GENRE,
+                                  FROM artist_genre,
                                       (SELECT artist_id as aId, count(playlist_id) as numPlaylistArtistAppearsIn
-                                      FROM PLAYLIST_ARTIST
+                                      FROM playlist_artist
                                       GROUP BY artist_id
                                       ) as countPlaylistsPerArtist
-                                  WHERE aId = ARTIST_GENRE.artist_id
+                                  WHERE aId = artist_genre.artist_id
                           ) as whatever
                         GROUP BY genre_id    
                         ) as GenrePopularityTable
