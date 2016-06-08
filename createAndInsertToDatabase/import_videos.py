@@ -406,7 +406,7 @@ def process_artists(only_new_artists=True, insert_to_db=True, src_pickle_name=No
     if dst_pickle_file is not None:
         dst_pickle_file.close()
 
-def main()
+def main():
     parser = argparse.ArgumentParser(description="Import videos into pickle file and/or database.")
 
     parser.add_argument('-n', '--only_new_artists', action='store_true', help="Only import artists that don't already exist")
