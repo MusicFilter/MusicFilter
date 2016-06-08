@@ -17,6 +17,11 @@ def home(request):
     psaux = subprocess.Popen(["ps aux | grep import_videos"], stdout=subprocess.PIPE, shell=True).communicate()[0]
     psaux = psaux.split('\n')
 
+    if len(psaux) < 4:
+        psaux = False
+    else:
+        psaux = True
+
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
@@ -24,7 +29,7 @@ def home(request):
         'top_genre':    top_genre,
         'top_decade':   top_decade,
         'top_country':  top_country,
-        'is_updating':  len(psaux)
+        'is_updating':  psaux
     }
 
     return render(request, 'index.html', context)
@@ -140,12 +145,12 @@ def generator(request):
         context = {
             'message': 'Updating DB...',
             'submessage': 'Taking you back home',
-            'timeout': 5
+            'timeout': 3
         }
 
         # run update script
         update_db_path = os.path.join(os.getcwd(), 'createAndInsertToDatabase', 'import_videos.py')
-        #subprocess.Popen(["python", update_db_path])
+        subprocess.Popen(["python", update_db_path, "-h"])
 
     return render(request, 'loader.html', context)
 

@@ -334,7 +334,7 @@
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h1>Update Database</h1>
-                    {% if is_updating < 3 %}
+                    {% if is_updating < 4 %}
                     <a href="/generator" data-toggle="tooltip" title="Update Database" class="btn btn-lg"><i class="fa fa-database fa-4x"></i></a>
                     {% else %}
                     <br>
@@ -403,11 +403,11 @@
     	if ($("#name").val() != "") {
     		$("#submit-btn").removeClass("disabled");
     		$("#submit-btn").prop('disabled', false);
-    		$("#name").prop('disabled', false);
+    		$("#name").prop('invalid', true);
     	} else {
     		$("#submit-btn").addClass("disabled");
     		$("#submit-btn").prop('disabled', true);
-    		$("#name").prop('disabled', true);
+    		$("#name").prop('valid', true);
     	}
     	
     }

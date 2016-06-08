@@ -191,11 +191,11 @@ hr.small {
     background-color: crimson ;
 }
 
-.validator input:invalid, input:focus:invalid {
+.validator input:invalid input:focus:invalid {
     background-color: crimson;
 }
 
-.validator input:valid, input:focus:valid {
+.validator input:valid input:focus:valid {
     background-color: SpringGreen
 }
 
