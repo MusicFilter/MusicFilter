@@ -4,7 +4,7 @@ from engine import backendInterface
 from engine.objects import Playlist
 import json
 import subprocess
-
+import os
 
 """
 Homepage
@@ -135,12 +135,17 @@ def generator(request):
             'timeout': 3
         }
 
+    # update DB
     else:
         context = {
             'message': 'Updating DB...',
             'submessage': 'Taking you back home',
             'timeout': 5
         }
+
+        # run update script
+        update_db_path = os.path.join(os.getcwd(), 'createAndInsertToDatabase', 'import_videos.py')
+        #subprocess.Popen(["python", update_db_path])
 
     return render(request, 'loader.html', context)
 

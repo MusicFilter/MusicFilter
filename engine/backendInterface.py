@@ -66,9 +66,15 @@ def getNewest(count=4):
 Get playlist object by its playlist_name filed
 :returns: [playlist] object or -1 if nothing was found
 :param: playlist_name [int] playlist Name
+:param: [boolean] like
 """
-def getPlaylistsByName(playlist_name):
-    playlist = dbaccess.getPlaylistsByName("%" + playlist_name + "%")
+def getPlaylistsByName(playlist_name, like=True):
+    if like:
+        playlist = dbaccess.getPlaylistsByName("%" + playlist_name + "%")
+
+    else:
+        playlist = dbaccess.getPlaylistsByName(playlist_name)
+
     return playlist
 
 

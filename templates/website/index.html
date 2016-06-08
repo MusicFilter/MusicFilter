@@ -232,11 +232,11 @@
                     <br>
                     
 
-                    <form role="createPlaylist" action="/generator/" method="post">
+                    <form id="createPlaylistForm" role="createPlaylist" action="/generator/" method="post">
                         {% csrf_token %}
                         
                         <fieldset class="form-group col-md-12">
-                        	<input id="name" class="form-control input-lg text-input" placeholder="Name your playlist..." name="name" type="text">
+                        	<input id="name" class="form-control input-lg text-input" placeholder="Name your playlist" name="name" type="text" required>
                         </fieldset>
                         <br><br>
                         
@@ -402,8 +402,10 @@
 		
     	if ($("#name").val() != "") {
     		$("#submit-btn").removeClass("disabled");
+    		$("#submit-btn").prop('disabled', false);
     	} else {
     		$("#submit-btn").addClass("disabled");
+    		$("#submit-btn").prop('disabled', true);
     	}
     	
     }
