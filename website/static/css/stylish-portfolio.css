@@ -214,6 +214,13 @@ hr.small {
     -o-background-size: cover;
 }
 
+/* Update */
+.update {
+    padding: 50px 0;
+    color: orange;
+    background-color: #808080;
+}
+
 /* Checkbox */
 input[type=checkbox]
 {

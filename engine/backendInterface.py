@@ -182,7 +182,7 @@ def buildDescription(postdict):
     if postdict['cover']:
         props += "cover versions, "
         
-    if postdict['withyrics']:
+    if postdict['withlyrics']:
         props += "lyrics included, "
         
     if props != "":

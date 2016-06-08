@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from engine import backendInterface
 from engine.objects import Playlist
 import json
+import subprocess
 
 
 """
@@ -12,13 +13,18 @@ def home(request):
 
     top_artist, top_genre, top_decade, top_country = backendInterface.getTopHits()
 
+    # check if DB update is running
+    psaux = subprocess.Popen(["ps aux | grep import_videos"], stdout=subprocess.PIPE, shell=True).communicate()[0]
+    psaux = psaux.split('\n')
+
     context = {
         'trending':     backendInterface.getTrending(),
         'newest':       backendInterface.getNewest(),
         'top_artist':   top_artist,
         'top_genre':    top_genre,
         'top_decade':   top_decade,
-        'top_country':  top_country
+        'top_country':  top_country,
+        'is_updating':  len(psaux)
     }
 
     return render(request, 'index.html', context)
@@ -122,9 +128,19 @@ def generator(request):
         
         playlist = backendInterface.genratePlaylist(postdict)
 
-    context = {
-        'playlist_id': playlist.id
-    }
+        context = {
+            'playlist_id': playlist.id,
+            'redirect': 'player/',
+            'message': 'Generating Your Playlist',
+            'timeout': 3
+        }
+
+    else:
+        context = {
+            'message': 'Updating DB...',
+            'submessage': 'Taking you back home',
+            'timeout': 5
+        }
 
     return render(request, 'loader.html', context)
 
