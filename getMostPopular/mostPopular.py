@@ -16,22 +16,23 @@ cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
 getMostPopularArtist =\
 """
-SELECT name
-FROM artist
-WHERE id in
-         (SELECT artist_id
-             FROM playlist_artist
-             GROUP BY artist_id
-             HAVING count(playlist_id) >= 
-			(SELECT max(popularity)
-			FROM
-			    (SELECT count(playlist_id) as popularity
-			    FROM playlist_artist
-			    GROUP BY artist_id
-			    ) as countPlaylistsPerArtist
-			)
-	)
+
+(SELECT name
+FROM playlist_artist, artist
+WHERE playlist_artist.artist_id = artist.id AND artist.name IS NOT NULL
+GROUP BY artist.id
+HAVING count(playlist_id) >= 
+          (SELECT max(popularity)
+          FROM
+              (SELECT count(playlist_id) as popularity
+              FROM playlist_artist, artist
+              WHERE playlist_artist.artist_id = artist.id AND artist.name IS NOT NULL
+              GROUP BY artist.id
+              ) as countPlaylistsPerArtist
+          )
+)
 """
+
 
 
 getMostPopularGenre =\
@@ -84,7 +85,7 @@ WHERE id in
             FROM playlist_artist
             GROUP BY artist_id
             ) as countPlaylistsPerArtistBlaBla
-        WHERE artist.id = aIdBlaBla
+        WHERE artist.id = aIdBlaBla AND artist.country_id IS NOT NULL
         GROUP BY artist.country_id
         HAVING sum(numPlaylistArtistAppearsInBlaBla) >= 
 
@@ -98,7 +99,7 @@ WHERE id in
                   FROM playlist_artist
                   GROUP BY artist_id
                   ) as countPlaylistsPerArtist
-              WHERE artist.id = aId
+              WHERE artist.id = aId AND artist.country_id IS NOT NULL
               GROUP BY artist.country_id
               ) as CountryPopularityTable
           )
@@ -130,21 +131,21 @@ SELECT artist.dominant_decade
             FROM PLAYLIST_ARTIST
             GROUP BY artist_id
             ) as countPlaylistsPerArtistBlaBla
-        WHERE artist.id = aIdBlaBla
+        WHERE artist.id = aIdBlaBla AND artist.dominant_decade IS NOT NULL
         GROUP BY artist.dominant_decade
         HAVING sum(numPlaylistArtistAppearsInBlaBla) >= 
 
         
           (SELECT max(decadePopularity)
           FROM
-              (SELECT artist.id , sum(numPlaylistArtistAppearsIn) as decadePopularity, artist.dominant_decade
+              (SELECT sum(numPlaylistArtistAppearsIn) as decadePopularity
               FROM
                   artist, 
                   (SELECT artist_id as aId, count(playlist_id) as numPlaylistArtistAppearsIn
                   FROM PLAYLIST_ARTIST
                   GROUP BY artist_id
                   ) as countPlaylistsPerArtist
-              WHERE artist.id = aId
+              WHERE artist.id = aId AND artist.dominant_decade IS NOT NULL
               GROUP BY artist.dominant_decade
               ) as DecadePopularityTable
           )
