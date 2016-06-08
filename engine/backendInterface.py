@@ -157,12 +157,17 @@ Returns most popular items
 def getTopHits():
 
     # get results from DB
+    res = dbaccess.getTopArtist()
+    top_artist = '' if res is None else res[0]
 
-    # dummy DB
-    top_artist = 'Dedi Dadon'
-    top_genre = 'Classical Indie Pop Rock'
-    top_decade = '1950s'
-    top_country = 'Portugal'
+    res = dbaccess.getTopGenre()
+    top_genre = '' if res is None else res[0]
+
+    res = dbaccess.getTopDecade()
+    top_decade = '' if res is None else res[0]
+
+    res = dbaccess.getTopCountry()
+    top_country = '' if res is None else res[0]
 
     return top_artist, top_genre, top_decade, top_country
 

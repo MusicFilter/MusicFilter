@@ -117,7 +117,7 @@ def getPlaylistVideos(playlist_id):
 
 
 """
-@fetchone
+@fetchall
 SELECT id, creation_date, description, play_count
 FROM playlist
 WHERE name = <playlist_name>
@@ -470,3 +470,79 @@ def getFilterGenres(playlist_id):
 
         # fetch results
         return cursor.fetchall()
+
+"""
+@fetchone
+SELECT name
+FROM artist
+WHERE id = (
+    SELECT artist_id
+    FROM playlist_artist
+    GROUP BY artist_id
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+)
+"""
+def getTopArtist():
+    with connection.cursor() as cursor:
+        # execute query
+        cursor.execute("SELECT name FROM artist WHERE id = (SELECT artist_id FROM playlist_artist GROUP BY artist_id ORDER BY COUNT(*) DESC LIMIT 1)")
+
+        # fetch results
+        return cursor.fetchone()
+
+"""
+@fetchone
+SELECT name
+FROM genre
+WHERE id = (
+    SELECT genre_id
+    FROM playlist_genre
+    GROUP BY genre_id
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+)
+"""
+def getTopGenre():
+    with connection.cursor() as cursor:
+        # execute query
+        cursor.execute("SELECT name FROM genre WHERE id = (SELECT genre_id FROM playlist_genre GROUP BY genre_id ORDER BY COUNT(*) DESC LIMIT 1)")
+
+        # fetch results
+        return cursor.fetchone()
+
+"""
+@fetchone
+SELECT decade_id
+FROM playlist_decade
+GROUP BY decade_id
+ORDER BY COUNT(*) DESC
+LIMIT 1
+"""
+def getTopDecade():
+    with connection.cursor() as cursor:
+        # execute query
+        cursor.execute("SELECT decade_id FROM playlist_decade GROUP BY decade_id ORDER BY COUNT(*) DESC LIMIT 1")
+
+        # fetch results
+        return cursor.fetchone()
+
+"""
+@fetchone
+SELECT name
+FROM country
+WHERE id = (
+    SELECT country_id
+    FROM playlist_country
+    GROUP BY country_id
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+)
+"""
+def getTopCountry():
+    with connection.cursor() as cursor:
+        # execute query
+        cursor.execute("SELECT name FROM country WHERE id = (SELECT country_id FROM playlist_country GROUP BY country_id ORDER BY COUNT(*) DESC LIMIT 1)")
+
+        # fetch results
+        return cursor.fetchone()
