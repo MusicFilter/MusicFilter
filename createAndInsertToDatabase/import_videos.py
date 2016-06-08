@@ -1,3 +1,5 @@
+import argparse
+import cPickle as pickle
 import json
 import requests
 import time
@@ -279,61 +281,145 @@ def get_artist_details(artist_id):
 
     return artist_details
 
-def select_artists():
+def select_artists_from_api():
+    artists = []
+
     # Search for singers and bands with a "Freebase ID" property.
     response = wdqs_query(SELECT_ARTISTS_WITH_SINGLE_FREEBASE_ID)
 
-    artists = []
     for artist in response['results']['bindings']:
         artists.append(wikidata_entity_url_to_id(artist['item']['value']))
 
     return artists
 
-def process_artist(artist_id):
+def select_artists_from_pickle(pickle_name):
+    artists = []
+
+    pickle_file = open(pickle_name, 'rb')
+
+    while True:
+        try:
+            artist_details = pickle.load(pickle_file)
+        except EOFError:
+            break
+
+        artists.append(artist_details['id'])
+
+    pickle_file.close()
+
+    return artists
+
+def select_artists_from_db():
+    cur.execute("SELECT id FROM artist")
+    return [artist['id'] for artist in cur.fetchall()]
+
+def select_artists(src_pickle_name):
+    if src_pickle_name is None:
+        return select_artists_from_api()
+    else:
+        return select_artists_from_pickle(src_pickle_name)
+
+def process_artist(artist_id, insert_to_db, src_pickle_file, dst_pickle_file):
         print "Getting details for artist %d..." % artist_id,
-        artist_details = None
-        while artist_details is None:
-            try:
-                artist_details = get_artist_details(artist_id)
-            except ConnectionError as e:
-                time.sleep(CONNECTION_ERROR_WAIT)
+
+        if src_pickle_file is None:
+            artist_details = None
+            while artist_details is None:
+                try:
+                    artist_details = get_artist_details(artist_id)
+                except ConnectionError as e:
+                    time.sleep(CONNECTION_ERROR_WAIT)
+        else:
+            artist_details = pickle.load(src_pickle_file)
+
         print "DONE"
-        print "Inserting artist %d..." % artist_id,
-        insertArtist(artist_details)
-        print "DONE"
-        if artist_details['country'] is not None:
-            print "Inserting country %d..." % artist_details['country']['id'],
-            insertCountry(artist_details['country'])
-            print "DONE"
-        for genre in artist_details['genres']:
-            print "Inserting genre %d..." % genre['id'],
-            insertGenre(genre)
-            print "DONE"
-            print "Inserting artist-genre %d-%d..." % (artist_id, genre['id']),
-            insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['id']})
-            print "DONE"
-        for video in artist_details['videos']:
-            print "Inserting video %s..." % video['id'],
-            insertVideo(video)
+
+        if dst_pickle_file is not None:
+            print "Pickling artist %d..." % artist_id,
+            pickle.dump(artist_details, dst_pickle_file, pickle.HIGHEST_PROTOCOL)
             print "DONE"
 
-def build_database(only_new_artists=True):
+        if insert_to_db:
+            print "Inserting artist %d..." % artist_id,
+            insertArtist(artist_details)
+            print "DONE"
+            if artist_details['country'] is not None:
+                print "Inserting country %d..." % artist_details['country']['id'],
+                insertCountry(artist_details['country'])
+                print "DONE"
+            for genre in artist_details['genres']:
+                print "Inserting genre %d..." % genre['id'],
+                insertGenre(genre)
+                print "DONE"
+                print "Inserting artist-genre %d-%d..." % (artist_id, genre['id']),
+                insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['id']})
+                print "DONE"
+            for video in artist_details['videos']:
+                print "Inserting video %s..." % video['id'],
+                insertVideo(video)
+                print "DONE"
+
+def process_artists(only_new_artists=True, insert_to_db=True, src_pickle_name=None, dst_pickle_name=None):
     print "Selecting artists...",
-    artist_ids = select_artists()
+    artist_ids = select_artists(src_pickle_name)
     print "DONE"
     print
 
     if only_new_artists:
-        cur.execute("SELECT id FROM artist")
-        artist_ids_from_db = [artist['id'] for artist in cur.fetchall()]
-        artist_ids = list(set(artist_ids) - set(artist_ids_from_db))
+        if insert_to_db:
+            artist_ids_from_db = select_artists_from_db()
+
+        if dst_pickle_name is not None:
+            artist_ids_from_pickle = select_artists_from_pickle(dst_pickle_name)
+
+        if insert_to_db and (dst_pickle_name is not None):
+            if set(artist_ids_from_db) != set(artist_ids_from_pickle):
+                print "Warning: Pickle and DB artists are different"
+                print
+            subtrahend = set(artist_ids_from_db) & set(artist_ids_from_pickle)
+        elif insert_to_db:
+            subtrahend = set(artist_ids_from_db)
+        elif dst_pickle_name is not None:
+            subtrahend = set(artist_ids_from_pickle)
+        else:
+            subtrahend = set()
+            
+        artist_ids = list(set(artist_ids) - subtrahend)
+
+    if src_pickle_name is not None:
+        src_pickle_file = open(src_pickle_name, 'rb')
+    else:
+        src_pickle_file = None
+
+    if dst_pickle_name is not None:
+        dst_pickle_file = open(dst_pickle_name, 'ab')
+    else:
+        dst_pickle_file = None
 
     for artist_id in artist_ids:
-        process_artist(artist_id)
+        process_artist(artist_id, insert_to_db, src_pickle_file, dst_pickle_file)
         print
 
-if __name__ == '__main__':
+    if src_pickle_file is not None:
+        src_pickle_file.close()
+
+    if dst_pickle_file is not None:
+        dst_pickle_file.close()
+
+def main()
+    parser = argparse.ArgumentParser(description="Import videos into pickle file and/or database.")
+
+    parser.add_argument('-n', '--only_new_artists', action='store_true', help="Only import artists that don't already exist")
+    parser.add_argument('-db', '--insert_to_db', action='store_true', help="Import items into database")
+    parser.add_argument('-src', '--src_pickle', help="Import items from pickle file (if not provided, use API)")
+    parser.add_argument('-dst', '--dst_pickle', help="Import items into pickle file")
+
+    args = parser.parse_args()
+
     try:
-        build_database()
+        process_artists(args.only_new_artists, args.insert_to_db, args.src_pickle, args.dst_pickle)
     except KeyboardInterrupt:
         pass
+
+if __name__ == '__main__':
+    main()
