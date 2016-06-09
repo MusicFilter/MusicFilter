@@ -16,4 +16,5 @@ urlpatterns = patterns('',
     url(r'^genres/', views.genres, name='genres'),
     url(r'^countries/', views.countries, name='countries'),
     url(r'^find/', views.find, name='find'),
+    url(r'^checkName/', views.checkName, name='checkName'),
 )

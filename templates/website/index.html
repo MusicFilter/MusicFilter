@@ -238,14 +238,15 @@
                         {% csrf_token %}
                         
                         <fieldset class="form-group col-md-12">
-                        	<input id="name" class="form-control input-lg text-input" placeholder="Name your playlist" name="name" type="text">
+                        	<input id="name" class="form-control input-lg text-input" placeholder="Name your playlist" name="name" type="text" autocomplete="off">
+                        	<span id="exists-msg" class="help-block" style="display:none">Seems like this name already exists in our database...</span>
                         </fieldset>
                         <br><br>
                         
                     	<fieldset class="form-group col-md-3">
                     	    <div class="service-item">
                             	<i class="fa fa-music fa-4x"></i>
-                            	<h4><strong><label for="genre">Genres</label></strong></h4>
+                            	<h4><strong><label for="genre">Genre</label></strong></h4>
                         	</div>
 						    <select name="genre" id="genre" title="From metal to jazz" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							</select>
@@ -254,7 +255,7 @@
 						<fieldset class="form-group col-md-3">
 						    <div class="service-item">
                             	<i class="fa fa-microphone fa-4x"></i>
-                            	<h4><strong><label for="artist">Artists</label></strong></h4>
+                            	<h4><strong><label for="artist">Artist</label></strong></h4>
                        	 	</div>
 							<select name="artist" id="artist" title="We got 'em all" class="selectpicker filter" data-size="5" multiple data-live-search="true" data-selected-text-format="count>2">
 							</select>
@@ -308,7 +309,7 @@
 
 						    
 						    <div class="service-item col-md-4">
-                            	<i class="fa fa-pencil fa-2x"></i>
+                            	<i class="fa fa-file-text-o fa-2x"></i>
                             	<h5><strong>Videos with lyrics</strong></h5>
                             	<label class="filter-label">
 						      		<input name="withlyrics" id="withlyrics" type="checkbox">
@@ -399,6 +400,32 @@
     
     $("#name").keyup(fixSubmit);
     $("#name").change(fixSubmit);
+    
+    $("#name").keyup(function() {
+    	
+    	$.ajax({
+    		  url: '/checkName/',
+    		  type: 'GET',
+    		  data: 'name=' + $(this).val(),
+    		  success: function(data) {
+    		  		if (data) {
+    		  			// There is a playlist with this name
+    		  			$("#name").parent().addClass("has-error");
+    		  			$("#exists-msg").show();
+    		    		$("#submit-btn").addClass("disabled");
+    		    		$("#submit-btn").prop('disabled', true);
+    		    		$("#name").prop('valid', false);
+    		  		} else {
+    		  			$("#name").parent().removeClass("has-error");
+    		  			$("#exists-msg").hide();
+    		    		$("#submit-btn").removeClass("disabled");
+    		    		$("#submit-btn").prop('disabled', false);
+    		    		$("#name").prop('invalid', true);
+    		  		}
+    		  }
+    		  
+    	});
+    });
     
     function fixSubmit() {
 		

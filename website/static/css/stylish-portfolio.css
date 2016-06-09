@@ -229,6 +229,15 @@ hr.small {
     background-color: #808080;
 }
 
+#exists-msg {
+	
+	-moz-border-radius:10px 10px 10px 10px;
+    border-radius:10px 10px 10px 10px;
+    background-color:#FFF;
+    border:solid 1px #808080;
+    padding:10px;
+}
+
 /* Checkbox */
 input[type=checkbox]
 {
