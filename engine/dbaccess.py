@@ -161,7 +161,7 @@ def incrementHitCount(playlist_id):
 """
 Loads videos using the given playlist
 @fetchall
-MONSTERQUERY
+RANDOMIZEQUERY
 """
 def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
@@ -173,7 +173,6 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
             return cursor.fetchall()
 
     select_data = []
-    print 'loading from monsterquery'
 
     # Prepare user input
     genreslist = [int(x[0]) for x in playlist.genres]
@@ -271,25 +270,9 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
             header, filtered_videos_select, fromstring, wherestring, footer
         )
 
-        # assemble monster query
-        query = '{0} {1}'.format(count_query, main_query)
-        
-        print query
-        print frompart
-        print fromstring
-
-        # execute query
-        try:
-            cursor.execute(count_query, select_data)
-        except Exception as e:
-            print e
-            print cursor._last_executed
-
-        try:
-            cursor.execute(main_query, select_data)
-        except Exception as e:
-            print e
-            print cursor._last_executed
+        # execute queries
+        cursor.execute(count_query, select_data)
+        cursor.execute(main_query, select_data)
 
         # fetch results
         return cursor.fetchall()

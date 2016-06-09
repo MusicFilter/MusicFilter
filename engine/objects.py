@@ -4,7 +4,7 @@ from random import shuffle
 POSTDICT = 1
 DB_ENTRY = 2
 LOAD_FROM_TABLE = 1
-LOAD_FROM_MONSTERQUERY = 2
+LOAD_FROM_RANDOMIZEQUERY = 2
 
 class Playlist:
 

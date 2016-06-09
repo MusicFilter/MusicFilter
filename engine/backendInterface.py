@@ -141,7 +141,7 @@ def loadVideos(playlist, commit):
 
     if commit:
         # reload videos from DB
-        video_ids = dbaccess.loadVideos(playlist, mode=objects.LOAD_FROM_MONSTERQUERY)
+        video_ids = dbaccess.loadVideos(playlist, mode=objects.LOAD_FROM_RANDOMIZEQUERY)
         video_ids = [x[0] for x in video_ids]
 
         # insert updated video list to DB
