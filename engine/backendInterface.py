@@ -224,4 +224,4 @@ def updateFilters(playlist):
     playlist.artists = dbaccess.getFilterArtists(playlist.id)
     playlist.countries = dbaccess.getFilterCountries(playlist.id)
     playlist.genres = dbaccess.getFilterGenres(playlist.id)
-    playlist.decades = dbaccess.getFilterDecades(playlist.id)
+    playlist.decades = [decade[0] for decade in dbaccess.getFilterDecades(playlist.id)]
