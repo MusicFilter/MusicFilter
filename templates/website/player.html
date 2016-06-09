@@ -45,6 +45,7 @@
             </h1>
             <h3 style="color: crimson;">{{ playlist.name }}</h3>
             <h4 style="color: crimson;">{{ playlist.description }}</h4>
+            <h5 id="no-videos" style="display-none">We couldn't find any videos matching your criteria, so meanwhile you can enjoy some quality SQL learning time</h5>
             <br><br>
             <div id="player"></div>
             <br><br><br><br><br><br>
@@ -93,12 +94,16 @@
 
         // YouTube playlist videos. Will be loaded from DB
         var player;
-        //var playlist = ['b_XKnkQZkOM','dnNt78eGjSM'];
         var playlist = [
             {% for video in playlist.video_list %}
             '{{ video }}',
             {% endfor %}
         ];
+        
+        if (playlist.length == 0) {
+        	playlist = ['HgoM1I4yEFo'];
+        	$("#no-videos").show();
+        }
 
         // YouTube functions
         function onYouTubeIframeAPIReady() {
