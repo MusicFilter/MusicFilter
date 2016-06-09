@@ -149,7 +149,7 @@ def generator(request):
         }
 
         # run update script
-        update_db_path = os.path.join(os.getcwd(), 'createAndInsertToDatabase', 'import_data.py')
+        update_db_path = os.path.join(os.getcwd(), 'create_db', 'import_data.py')
         subprocess.Popen(["python", update_db_path, "-h"])
 
     return render(request, 'loader.html', context)
