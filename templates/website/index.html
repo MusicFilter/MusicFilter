@@ -398,8 +398,8 @@
         $("#sidebar-wrapper").toggleClass("active");
     });
     
-    $("#name").keyup(fixSubmit);
-    $("#name").change(fixSubmit);
+    $("#name").keyup(checkSubmit);
+    $("#name").change(checkSubmit);
     
     $("#name").keyup(function() {
     	
@@ -407,29 +407,30 @@
     		  url: '/checkName/',
     		  type: 'GET',
     		  data: 'name=' + $(this).val(),
-    		  success: function(data) {
-    		  		if (data) {
+    		  success: function(exists) {
+    		  		if (exists || $(this).val() == "") {
     		  			// There is a playlist with this name
     		  			$("#name").parent().addClass("has-error");
     		  			$("#exists-msg").show();
-    		    		$("#submit-btn").addClass("disabled");
-    		    		$("#submit-btn").prop('disabled', true);
-    		    		$("#name").prop('valid', false);
+    		    		fixSubmit(false);
     		  		} else {
     		  			$("#name").parent().removeClass("has-error");
     		  			$("#exists-msg").hide();
-    		    		$("#submit-btn").removeClass("disabled");
-    		    		$("#submit-btn").prop('disabled', false);
-    		    		$("#name").prop('invalid', true);
+    		    		fixSubmit(true);
     		  		}
     		  }
     		  
     	});
     });
     
-    function fixSubmit() {
+    
+    function checkSubmit() {
+    	fixSubmit($("#name").val() != "");
+    }
+    
+    function fixSubmit(enable) {
 		
-    	if ($("#name").val() != "") {
+    	if (enable) {
     		$("#submit-btn").removeClass("disabled");
     		$("#submit-btn").prop('disabled', false);
     		$("#name").prop('invalid', true);
@@ -487,7 +488,7 @@
 	    });
 
     	// Fix submit button on startup
-    	fixSubmit();
+    	fixSubmit($("#name").val() != "");
 
     	// Scrolls to the selected menu item on the page
         $('a[href*=#]:not([href=#])').click(function() {
