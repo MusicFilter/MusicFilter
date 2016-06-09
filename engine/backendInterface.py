@@ -93,6 +93,7 @@ def getPlaylistById(playlist_id):
 
     p = objects.playlistFactory(playlist, type=objects.DB_ENTRY)
     updateFilters(p)
+    p.description = buildDescription(p, type=objects.OBJECT)
     
     return p
 
@@ -174,27 +175,44 @@ def getTopHits():
     return top_artist, top_genre, top_decade, top_country
 
 
-def buildDescription(postdict):
+def buildDescription(p_entry, type=objects.POSTDICT):
     
     props = ""
     
-    if postdict['live']:
-        props += "live, "
-        
-    if postdict['cover']:
-        props += "cover versions, "
-        
-    if postdict['withlyrics']:
-        props += "lyrics included, "
+    if type == objects.POSTDICT:
+        if p_entry['live']:
+            props += "live, "
+            
+        if p_entry['cover']:
+            props += "cover versions, "
+            
+        if p_entry['withlyrics']:
+            props += "lyrics included, "
+    else:
+        if p_entry.live:
+            props += "live, "
+            
+        if p_entry.cover:
+            props += "cover versions, "
+            
+        if p_entry.withlyrics:
+            props += "lyrics included, "
         
     if props != "":
         props = " " + props[:-2]
         
-    string_genres = ', '.join(str(x[1]) for x in postdict['genres'])
-    string_countries = ', '.join(str(x[1]) for x in postdict['countries'])
-    string_artists = ', '.join(str(x[1]) for x in postdict['artists'])
-    string_decades = ', '.join(str(x) + 's' for x in postdict['decades'])
-    string_freetext = ''
+    if type == objects.POSTDICT:
+        string_genres = ', '.join(str(x[1]) for x in p_entry['genres'])
+        string_countries = ', '.join(str(x[1]) for x in p_entry['countries'])
+        string_artists = ', '.join(str(x[1]) for x in p_entry['artists'])
+        string_decades = ', '.join(str(x) + 's' for x in p_entry['decades'])
+        string_freetext = p_entry['text']
+    else:
+        string_genres = ', '.join(str(x[1]) for x in p_entry.genres)
+        string_countries = ', '.join(str(x[1]) for x in p_entry.countries)
+        string_artists = ', '.join(str(x[1]) for x in p_entry.artists)
+        string_decades = ', '.join(str(x) + 's' for x in p_entry.decades)
+        string_freetext = p_entry.text
         
     if string_artists != "":
         string_artists = " by " + string_artists
@@ -208,8 +226,8 @@ def buildDescription(postdict):
     if string_countries != "":
         string_countries = " from " + string_countries
         
-    if postdict['text'] != "":
-        string_freetext = " that have " + postdict['text'] + " in the title "
+    if string_freetext != "":
+        string_freetext = " that have " + string_freetext + " in the title "
         
     return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)

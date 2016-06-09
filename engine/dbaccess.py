@@ -408,15 +408,15 @@ def getFilterDecades(playlist_id):
 
 """
 @fetchall
-SELECT artist_id
-FROM playlist_artist
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_artist, artist
+WHERE playlist_id = <playlist_id> AND artist_id = id
 """
 def getFilterArtists(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT artist_id FROM playlist_artist WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_artist, artist WHERE playlist_id = %s AND artist_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -424,15 +424,15 @@ def getFilterArtists(playlist_id):
 
 """
 @fetchall
-SELECT country_id
-FROM playlist_country
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_country, country
+WHERE playlist_id = <playlist_id> AND country_id = id
 """
 def getFilterCountries(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT country_id FROM playlist_country WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_country, country WHERE playlist_id = %s AND country_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -440,15 +440,15 @@ def getFilterCountries(playlist_id):
 
 """
 @fetchall
-SELECT genre_id
-FROM playlist_genre
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_genre, genre
+WHERE playlist_id = <playlist_id> AND genre_id = id
 """
 def getFilterGenres(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT genre_id FROM playlist_genre WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_genre, genre WHERE playlist_id = %s AND genre_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()

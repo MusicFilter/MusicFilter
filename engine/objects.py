@@ -3,6 +3,7 @@ from random import shuffle
 
 POSTDICT = 1
 DB_ENTRY = 2
+OBJECT = 3
 LOAD_FROM_TABLE = 1
 LOAD_FROM_RANDOMIZEQUERY = 2
 
@@ -91,7 +92,6 @@ def playlistFactory(p_entry, type):
         p.id = p_entry['id']
         p.name = p_entry['name']
         p.createdOn = p_entry['creation_date']
-        p.description = p_entry['description']
         p.hits = p_entry['play_count']
         p.cover = p_entry['is_cover']
         p.live = p_entry['is_live']
