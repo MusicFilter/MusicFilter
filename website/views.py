@@ -14,7 +14,7 @@ def home(request):
     top_artist, top_genre, top_decade, top_country = backendInterface.getTopHits()
 
     # check if DB update is running
-    psaux = subprocess.Popen(["ps aux | grep import_videos"], stdout=subprocess.PIPE, shell=True).communicate()[0]
+    psaux = subprocess.Popen(["ps aux | grep import_data"], stdout=subprocess.PIPE, shell=True).communicate()[0]
     psaux = psaux.split('\n')
 
     if len(psaux) < 4:
@@ -149,7 +149,7 @@ def generator(request):
         }
 
         # run update script
-        update_db_path = os.path.join(os.getcwd(), 'createAndInsertToDatabase', 'import_videos.py')
+        update_db_path = os.path.join(os.getcwd(), 'createAndInsertToDatabase', 'import_data.py')
         subprocess.Popen(["python", update_db_path, "-h"])
 
     return render(request, 'loader.html', context)
