@@ -1,15 +1,25 @@
 import argparse
 import cPickle as pickle
 import json
-import requests
+import os
 import time
 from collections import Counter
-from requests.exceptions import ConnectionError
 
+import django
+import requests
+from requests.exceptions import ConnectionError
 from apiclient.discovery import build
 from apiclient.errors import HttpError
 
-from demo_addingFromAPI import *
+import import_videos_dbaccess
+
+# Use musicfilter's Django settings, just for the database connection settings (host, user, password, port, db_name, charset).
+# Note: This won't work if the script is invoked using execfile.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'musicfilter.settings')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+django.setup()
+
+requests.packages.urllib3.disable_warnings()
 
 DEVELOPER_KEY = "AIzaSyCUyZXok3rrT88dpo2FEPY7hripKOmdRVQ"
 YOUTUBE_API_SERVICE_NAME = "youtube"
@@ -341,25 +351,28 @@ def process_artist(artist_id, insert_to_db, src_pickle_file, dst_pickle_file):
 
         if insert_to_db:
             print "Inserting artist %d..." % artist_id,
-            insertArtist(artist_details)
+            import_videos_dbaccess.insert_artist(artist_details)
             print "DONE"
             if artist_details['country'] is not None:
                 print "Inserting country %d..." % artist_details['country']['id'],
-                insertCountry(artist_details['country'])
+                import_videos_dbaccess.insert_country(artist_details['country'])
                 print "DONE"
             for genre in artist_details['genres']:
                 print "Inserting genre %d..." % genre['id'],
-                insertGenre(genre)
+                import_videos_dbaccess.insert_genre(genre)
                 print "DONE"
                 print "Inserting artist-genre %d-%d..." % (artist_id, genre['id']),
-                insertArtistGenre({'artist_id': artist_id, 'genre_id': genre['id']})
+                import_videos_dbaccess.insert_artist_genre({'artist_id': artist_id, 'genre_id': genre['id']})
                 print "DONE"
             for video in artist_details['videos']:
                 print "Inserting video %s..." % video['id'],
-                insertVideo(video)
+                import_videos_dbaccess.insert_video(video)
                 print "DONE"
 
 def process_artists(only_new_artists=True, insert_to_db=True, src_pickle_name=None, dst_pickle_name=None):
+    if insert_to_db:
+        import_videos_dbaccess.initial_commands()
+
     print "Selecting artists...",
     artist_ids = select_artists(src_pickle_name)
     print "DONE"
