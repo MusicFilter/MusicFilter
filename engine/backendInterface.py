@@ -116,8 +116,6 @@ Create a playlist using the given [postdict]
     text [string]
 """
 def genratePlaylist(postdict):
-    print 'generating a playlist from the following postdict:\n{0}'.format(postdict)
-
     # create a new playlist object
     playlist = objects.playlistFactory(postdict, type=objects.POSTDICT)
     playlist.description = buildDescription(postdict)
@@ -213,7 +211,7 @@ def buildDescription(postdict):
     if postdict['text'] != "":
         string_freetext = " that have " + postdict['text'] + " in the title "
         
-    return 'Listening to {0} videos{1}{2}{3}{4}{5}!'.format(
+    return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
 
 

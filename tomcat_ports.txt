@@ -1,2 +1,0 @@
-serviceport: 40010
-adminport: 50010

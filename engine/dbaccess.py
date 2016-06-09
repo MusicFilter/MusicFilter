@@ -118,7 +118,7 @@ def getPlaylistVideos(playlist_id):
 
 """
 @fetchall
-SELECT id, creation_date, description, play_count
+SELECT id, name
 FROM playlist
 WHERE name = <playlist_name>
 """
@@ -167,7 +167,6 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
     if mode == objects.LOAD_FROM_TABLE:
         # reload playlist from DB
-        print 'loading from playlist_video table'
         with connection.cursor() as cursor:
             cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist.id])
             return cursor.fetchall()
