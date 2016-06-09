@@ -223,3 +223,19 @@ def find(request):
         json.dumps(playlists),
         content_type="application/json"
     )
+    
+"""
+AJAX for checking if name exists
+"""
+def checkName(request):
+    search = request.GET.get('name')
+    exists = False
+
+    if search:
+        if backendInterface.getPlaylistsByName(search, False):
+            exists = True
+
+    return HttpResponse(
+        json.dumps(exists),
+        content_type="application/json"
+    )
