@@ -4,10 +4,6 @@ from django.contrib import admin
 from website import views
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'musicfilter.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', views.home, name='home'),
     url(r'^player/(?P<playlist_id>\d{0,10})/(?P<action>\w{0,10})$', views.player, name='player'),
