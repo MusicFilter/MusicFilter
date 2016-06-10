@@ -398,35 +398,32 @@
         $("#sidebar-wrapper").toggleClass("active");
     });
     
-    $("#name").keyup(checkSubmit);
-    $("#name").change(checkSubmit);
-    
-    $("#name").keyup(function() {
+    // Check validity of name on keyup and change
+    $("#name").bind("keyup change", function() {
     	
-    	$.ajax({
-    		  url: '/checkName/',
-    		  type: 'GET',
-    		  data: 'name=' + $(this).val(),
-    		  success: function(exists) {
-    		  		if (exists || $(this).val() == "") {
-    		  			// There is a playlist with this name
-    		  			$("#name").parent().addClass("has-error");
-    		  			$("#exists-msg").show();
-    		    		fixSubmit(false);
-    		  		} else {
-    		  			$("#name").parent().removeClass("has-error");
-    		  			$("#exists-msg").hide();
-    		    		fixSubmit(true);
-    		  		}
-    		  }
-    		  
-    	});
+    	if ($("#name").val() == "") {
+    		fixSubmit(false);
+    	} else {
+    		$.ajax({
+      		  url: '/checkName/',
+      		  type: 'GET',
+      		  data: 'name=' + $("#name").val(),
+      		  success: function(exists) {
+      		  		if (exists || $("#name").val() == "") {
+      		  			// There is a playlist with this name
+      		  			$("#name").parent().addClass("has-error");
+      		  			$("#exists-msg").show();
+      		    		fixSubmit(false);
+      		  		} else {
+      		  			$("#name").parent().removeClass("has-error");
+      		  			$("#exists-msg").hide();
+      		    		fixSubmit(true);
+      		  		}
+      		  }
+      		  
+      		});	
+    	}
     });
-    
-    
-    function checkSubmit() {
-    	fixSubmit($("#name").val() != "");
-    }
     
     function fixSubmit(enable) {
 		
