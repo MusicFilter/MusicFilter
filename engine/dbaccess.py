@@ -118,7 +118,7 @@ def getPlaylistVideos(playlist_id):
 
 """
 @fetchall
-SELECT id, creation_date, description, play_count
+SELECT id, name
 FROM playlist
 WHERE name = <playlist_name>
 """
@@ -161,19 +161,17 @@ def incrementHitCount(playlist_id):
 """
 Loads videos using the given playlist
 @fetchall
-MONSTERQUERY
+RANDOMIZEQUERY
 """
 def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
 
     if mode == objects.LOAD_FROM_TABLE:
         # reload playlist from DB
-        print 'loading from playlist_video table'
         with connection.cursor() as cursor:
             cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist.id])
             return cursor.fetchall()
 
     select_data = []
-    print 'loading from monsterquery'
 
     # Prepare user input
     genreslist = [int(x[0]) for x in playlist.genres]
@@ -271,25 +269,9 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
             header, filtered_videos_select, fromstring, wherestring, footer
         )
 
-        # assemble monster query
-        query = '{0} {1}'.format(count_query, main_query)
-        
-        print query
-        print frompart
-        print fromstring
-
-        # execute query
-        try:
-            cursor.execute(count_query, select_data)
-        except Exception as e:
-            print e
-            print cursor._last_executed
-
-        try:
-            cursor.execute(main_query, select_data)
-        except Exception as e:
-            print e
-            print cursor._last_executed
+        # execute queries
+        cursor.execute(count_query, select_data)
+        cursor.execute(main_query, select_data)
 
         # fetch results
         return cursor.fetchall()
@@ -426,15 +408,15 @@ def getFilterDecades(playlist_id):
 
 """
 @fetchall
-SELECT artist_id
-FROM playlist_artist
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_artist, artist
+WHERE playlist_id = <playlist_id> AND artist_id = id
 """
 def getFilterArtists(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT artist_id FROM playlist_artist WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_artist, artist WHERE playlist_id = %s AND artist_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -442,15 +424,15 @@ def getFilterArtists(playlist_id):
 
 """
 @fetchall
-SELECT country_id
-FROM playlist_country
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_country, country
+WHERE playlist_id = <playlist_id> AND country_id = id
 """
 def getFilterCountries(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT country_id FROM playlist_country WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_country, country WHERE playlist_id = %s AND country_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -458,15 +440,15 @@ def getFilterCountries(playlist_id):
 
 """
 @fetchall
-SELECT genre_id
-FROM playlist_genre
-WHERE playlist_id = <playlist_id>
+SELECT id, name
+FROM playlist_genre, genre
+WHERE playlist_id = <playlist_id> AND genre_id = id
 """
 def getFilterGenres(playlist_id):
     with connection.cursor() as cursor:
 
         # execute query
-        cursor.execute("SELECT genre_id FROM playlist_genre WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT id, name FROM playlist_genre, genre WHERE playlist_id = %s AND genre_id = id", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
