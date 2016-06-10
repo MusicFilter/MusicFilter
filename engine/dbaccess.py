@@ -285,24 +285,26 @@ Part2 inserts given video_ids to DB
 """
 def updateVideoList(playlist_id, video_ids):
     with connection.cursor() as cursor:
-        insert_data = [playlist_id]
-
         # part1
-        update_command = """DELETE FROM playlist_video
+        delete_command = """DELETE FROM playlist_video
                WHERE playlist_id = %s;
                """
 
-        # part2 - concatenate all rows to one query
-        for video_id in video_ids:
-            update_command += """INSERT INTO playlist_video
-                    (playlist_id, video_id)
-                    VALUES (%s, %s);
-                    """
-
-            insert_data.extend((playlist_id, video_id))
-
         # execute query
-        cursor.execute(update_command, insert_data)
+        cursor.execute(delete_command, [playlist_id])
+
+        # part2 - concatenate all rows to one query
+        if video_ids:
+            insert_command = "INSERT INTO playlist_video (playlist_id, video_id) VALUES "
+            values = []
+            insert_data = []
+            for video_id in video_ids:
+                values.append("(%s, %s)")
+                insert_data.extend((playlist_id, video_id))
+            insert_command += ", ".join(values)
+
+            # execute query
+            cursor.execute(insert_command, insert_data)
 
 
 """
@@ -355,36 +357,47 @@ def createPlaylist(p):
         playlist_id = cursor.lastrowid
 
         # Q3.1
-        for artist in p.artists:
-            insert_command = """INSERT INTO playlist_artist
-                    (playlist_id, artist_id)
-                    VALUES (LAST_INSERT_ID(), %s);
-                    """
-            cursor.execute(insert_command, [artist[0]])
+        if p.artists:
+            insert_command = "INSERT INTO playlist_artist (playlist_id, artist_id) VALUES "
+            values = []
+            insert_data = []
+            for artist in p.artists:
+                values.append("(LAST_INSERT_ID(), %s)")
+                insert_data.append(artist[0])
+            insert_command += ", ".join(values)
+            cursor.execute(insert_command, insert_data)
 
         # Q3.2
-        for country in p.countries:
-            insert_command = """INSERT INTO playlist_country
-                    (playlist_id, country_id)
-                    VALUES (LAST_INSERT_ID(), %s);
-                    """
-            cursor.execute(insert_command, [country[0]])
+        if p.countries:
+            insert_command = "INSERT INTO playlist_country (playlist_id, country_id) VALUES "
+            values = []
+            insert_data = []
+            for country in p.countries:
+                values.append("(LAST_INSERT_ID(), %s)")
+                insert_data.append(country[0])
+            insert_command += ", ".join(values)
+            cursor.execute(insert_command, insert_data)
 
         # Q3.3
-        for genre in p.genres:
-            insert_command = """INSERT INTO playlist_genre
-                    (playlist_id, genre_id)
-                    VALUES (LAST_INSERT_ID(), %s);
-                    """
-            cursor.execute(insert_command, [genre[0]])
+        if p.genres:
+            insert_command = "INSERT INTO playlist_genre (playlist_id, genre_id) VALUES "
+            values = []
+            insert_data = []
+            for genre in p.genres:
+                values.append("(LAST_INSERT_ID(), %s)")
+                insert_data.append(genre[0])
+            insert_command += ", ".join(values)
+            cursor.execute(insert_command, insert_data)
 
         # Q3.4
-        for decade in p.decades:
-            insert_command = """INSERT INTO playlist_decade
-                    (playlist_id, decade_id)
-                    VALUES (LAST_INSERT_ID(), %s);
-                    """
-            cursor.execute(insert_command, [decade])
+        if p.decades:
+            insert_command = "INSERT INTO playlist_decade (playlist_id, decade_id) VALUES "
+            values = []
+            insert_data = []
+            for decade in p.decades:
+                values.append("(LAST_INSERT_ID(), %s)")
+                insert_data.append(decade)
+            cursor.execute(insert_command, insert_data)
 
         return playlist_id
 
