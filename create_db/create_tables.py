@@ -15,7 +15,7 @@ def main():
     with connection.cursor() as cur:
         cur.execute("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")
 
-        cur.execute("ALTER DATABASE musicfilter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+        cur.execute("ALTER DATABASE %s CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci" % connection.settings_dict['NAME'])
 
         cur.execute("DROP TABLE IF EXISTS playlist_video")
         cur.execute("DROP TABLE IF EXISTS playlist_artist")
