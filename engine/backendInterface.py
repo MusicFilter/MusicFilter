@@ -227,7 +227,7 @@ def buildDescription(p_entry, type=objects.POSTDICT):
         string_countries = " from " + string_countries
         
     if string_freetext != "":
-        string_freetext = " that have " + string_freetext + " in the title "
+        string_freetext = " that have " + string_freetext + " in the video description "
         
     return 'Listening to{0} videos{1}{2}{3}{4}{5}!'.format(
              props, string_freetext, string_genres, string_artists, string_decades, string_countries)
