@@ -397,6 +397,7 @@ def createPlaylist(p):
             for decade in p.decades:
                 values.append("(LAST_INSERT_ID(), %s)")
                 insert_data.append(decade)
+            insert_command += ", ".join(values)
             cursor.execute(insert_command, insert_data)
 
         return playlist_id
