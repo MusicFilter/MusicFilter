@@ -338,11 +338,11 @@
                 <div class="col-lg-12 text-center">
                     <h1>Update Database</h1>
                     {% if is_updating %}
-                    <a href="/generator" data-toggle="tooltip" title="Update Database" class="btn btn-lg"><i class="fa fa-database fa-4x"></i></a>
-                    {% else %}
                     <br>
                     <i class="fa fa-exclamation-triangle fa-4x"></i>
                     <h2>DB is currently updating</h2>
+                    {% else %}
+                    <a href="/generator" data-toggle="tooltip" title="Update Database" class="btn btn-lg"><i class="fa fa-database fa-4x"></i></a>
                     {% endif %}
                     <br>
                     <p>Notice, updating the DB will start a separate process that may cause performance degradation</p>
