@@ -45,7 +45,7 @@
             </h1>
             <h3 style="color: crimson;">{{ playlist.name }}</h3>
             <h4 style="color: crimson;">{{ playlist.description }}</h4>
-            <h5 id="no-videos" style="display: none">We couldn't find any videos matching your criteria, so meanwhile you can enjoy some quality SQL learning time</h5>
+            <h5 style="color: crimson; display: none" id="no-videos">We couldn't find any videos matching your criteria, so meanwhile you can enjoy some quality SQL learning time</h5>
             <br><br>
             <div id="player"></div>
             <br><br><br><br><br><br>
@@ -128,7 +128,7 @@
         var done = false;
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING && !done) {
-                setTimeout(stopVideo, 6000);
+                //setTimeout(stopVideo, 6000);
                 done = true;
             }
         }
