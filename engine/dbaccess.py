@@ -1,5 +1,4 @@
 from django.db import connection
-import time
 import objects
 
 """
@@ -68,7 +67,7 @@ def getGenres(search):
 
 """
 @fetchall
-SELECT id, name, creation_date, description, play_count
+SELECT id, name, creation_date, play_count
 FROM playlist
 ORDER BY play_count
 DESC LIMIT <count>
@@ -77,7 +76,7 @@ def getTrending(count):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT id, name, creation_date, description, play_count FROM playlist ORDER BY play_count DESC LIMIT %s", [count])
+        cursor.execute("SELECT id, name, creation_date, play_count FROM playlist ORDER BY play_count DESC LIMIT %s", [count])
 
         # fetch results
         return dictfetchall(cursor)
@@ -85,7 +84,7 @@ def getTrending(count):
 
 """
 @fetchall
-SELECT id, name, creation_date, description, play_count
+SELECT id, name, creation_date, play_count
 FROM playlist
 ORDER BY creation_date
 DESC LIMIT <count>
@@ -94,7 +93,7 @@ def getNewest(count):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT id, name, creation_date, description, play_count FROM playlist ORDER BY creation_date DESC LIMIT %s", [count])
+        cursor.execute("SELECT id, name, creation_date, play_count FROM playlist ORDER BY creation_date DESC LIMIT %s", [count])
 
         # fetch results
         return dictfetchall(cursor)
@@ -110,7 +109,7 @@ def getPlaylistVideos(playlist_id):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist_id])
+        cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s LIMIT 100", [playlist_id])
 
         # fetch results
         return cursor.fetchall()
@@ -142,7 +141,7 @@ def getPlaylistById(playlist_id):
     with connection.cursor() as cursor:
 
         # execute queries
-        cursor.execute("SELECT * FROM playlist WHERE id = %s", [playlist_id])
+        cursor.execute("SELECT * FROM playlist WHERE id = %s LIMIT 1", [playlist_id])
 
         # fetch results
         return dictfetchone(cursor)
@@ -168,7 +167,7 @@ def loadVideos(playlist, mode=objects.LOAD_FROM_TABLE):
     if mode == objects.LOAD_FROM_TABLE:
         # reload playlist from DB
         with connection.cursor() as cursor:
-            cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s", [playlist.id])
+            cursor.execute("SELECT video_id FROM playlist_video WHERE playlist_id = %s LIMIT 100", [playlist.id])
             return cursor.fetchall()
 
     select_data = []
@@ -310,7 +309,7 @@ def updateVideoList(playlist_id, video_ids):
 1. Insert to playlist table
 @update
 INSERT INTO playlist
-(name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
+(name, is_live, is_cover, is_with_lyrics, free_text)
 VALUES (<p.name>, now, <p.desc>, 0, <p.live>, <p.cover>, <p.withlyrics>, <p.text>)
 
 2. Retrieve playlist ID
@@ -345,11 +344,11 @@ def createPlaylist(p):
 
         # Q1
         insert_command = """INSERT INTO playlist
-                (name, creation_date, description, play_count, is_live, is_cover, is_with_lyrics, free_text)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                (name, is_live, is_cover, is_with_lyrics, free_text)
+                VALUES (%s, %s, %s, %s, %s);
         """
 
-        insert_data = [p.name, time.strftime('%Y-%m-%d %H:%M:%S'), p.description, 0, p.live, p.cover, p.withlyrics, p.text]
+        insert_data = [p.name, p.live, p.cover, p.withlyrics, p.text]
         cursor.execute(insert_command, insert_data)
 
         # retrieve playlist ID

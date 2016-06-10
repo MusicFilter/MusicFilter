@@ -116,9 +116,8 @@ def main():
                                 CREATE TABLE playlist (
                                     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
                                     name VARCHAR(60) NOT NULL,
-                                    creation_date TIMESTAMP NOT NULL,
-                                    description VARCHAR(1000) NOT NULL,
-                                    play_count INT UNSIGNED NOT NULL,
+                                    creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    play_count INT UNSIGNED NOT NULL DEFAULT 0,
                                     is_live BOOLEAN NOT NULL,
                                     is_cover BOOLEAN NOT NULL,
                                     is_with_lyrics BOOLEAN NOT NULL,

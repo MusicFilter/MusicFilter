@@ -104,7 +104,6 @@ def playlistFactory(p_entry, type):
         p.decades = p_entry['decades']
         p.genres = p_entry['genres']
         p.name = p_entry['name']
-        p.createdOn = datetime.now()
         p.text = p_entry['text']
         p.cover = p_entry['cover']
         p.live = p_entry['live']
