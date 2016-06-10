@@ -17,7 +17,7 @@ def home(request):
     psaux = subprocess.Popen(["ps aux | grep import_data"], stdout=subprocess.PIPE, shell=True).communicate()[0]
     psaux = psaux.split('\n')
 
-    if len(psaux) < 4:
+    if len(psaux) < 3:
         psaux = False
     else:
         psaux = True
