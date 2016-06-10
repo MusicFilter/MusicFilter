@@ -16,8 +16,8 @@ def home(request):
     # check if DB update is running
     psaux = subprocess.Popen(["ps aux | grep import_data"], stdout=subprocess.PIPE, shell=True).communicate()[0]
     psaux = psaux.split('\n')
-    print psaux
-    if len(psaux) < 3:
+    
+    if len(psaux) < 4:
         psaux = False
     else:
         psaux = True
